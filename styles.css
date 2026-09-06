@@ -2793,3 +2793,137 @@ html.lightbox-open body{
     transition:none;
   }
 }
+
+
+/* ==================================================
+   V6.5 — ALIGNMENT, DENSITY & VIEWER FOCUS
+================================================== */
+
+/* Use one editorial width across Product and Interactive sections */
+.product-layout,
+.media-wide,
+.interactive > .section-heading,
+.interactive > .viewer-grid,
+.interactive > .viewer-note,
+.interactive > .feature-grid{
+  width:100%;
+  max-width:1460px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Pull the interactive section together */
+.interactive{
+  padding-top:clamp(68px,6vw,94px);
+  padding-bottom:clamp(68px,6vw,94px);
+}
+
+.interactive .section-heading{
+  margin-bottom:28px;
+}
+
+.viewer-grid{
+  gap:8px;
+}
+
+.viewer-card-head{
+  min-height:46px;
+}
+
+.viewer-card-foot{
+  min-height:40px;
+}
+
+.viewer-stage{
+  aspect-ratio:1.08 / 1;
+  min-height:440px;
+}
+
+.viewer-toolbar{
+  left:10px;
+  right:10px;
+  bottom:10px;
+  gap:8px;
+  padding:9px;
+}
+
+.viewer-reset{
+  top:10px;
+  right:10px;
+  min-height:31px;
+}
+
+.viewer-card{
+  transition:
+    border-color .25s ease,
+    transform .3s ease,
+    box-shadow .3s ease;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .viewer-card:hover{
+    border-color:rgba(255,255,255,.24);
+    transform:translateY(-2px);
+    box-shadow:0 18px 46px rgba(0,0,0,.12);
+  }
+}
+
+/* HAUGA real material swatches */
+.swatch-hauga-wood{
+  background:linear-gradient(135deg,#c8a06d,#72553b);
+}
+
+.swatch-hauga-white{
+  background:#b3b3b3;
+}
+
+/* Slightly clearer tactile cue without looking game-like */
+.viewer-canvas{
+  cursor:grab;
+}
+
+.viewer-canvas:active{
+  cursor:grabbing;
+}
+
+/* Controls remain compact even when Drawers becomes available */
+.viewer-card[data-viewer-id="hauga"] .viewer-toolbar{
+  grid-template-columns:1.05fr .82fr .82fr .82fr auto;
+}
+
+.viewer-card[data-viewer-id="tonstad"] .viewer-toolbar{
+  grid-template-columns:1.1fr .88fr .88fr auto;
+}
+
+@media(max-width:1320px){
+  .viewer-card[data-viewer-id="hauga"] .viewer-toolbar,
+  .viewer-card[data-viewer-id="tonstad"] .viewer-toolbar{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:900px){
+  .interactive > .section-heading,
+  .interactive > .viewer-grid,
+  .interactive > .viewer-note,
+  .interactive > .feature-grid{
+    max-width:none;
+  }
+
+  .viewer-stage{
+    min-height:480px;
+    aspect-ratio:1 / 1;
+  }
+}
+
+@media(max-width:600px){
+  .viewer-stage{
+    min-height:520px;
+    aspect-ratio:.78 / 1;
+  }
+
+  .viewer-card[data-viewer-id="hauga"] .viewer-toolbar,
+  .viewer-card[data-viewer-id="tonstad"] .viewer-toolbar{
+    grid-template-columns:1fr;
+  }
+}

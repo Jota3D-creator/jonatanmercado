@@ -6,6 +6,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 const PRODUCT_CONFIG = {
   tonstad: {
     cameraDirection: new THREE.Vector3(1.25, 0.85, 1.65),
+
     textures: {
       wood: {
         baseColor: "assets/models/Tonstad/WOOD/Model_Tonstad_WOOD_BaseColor.png",
@@ -13,6 +14,7 @@ const PRODUCT_CONFIG = {
         roughness: "assets/models/Tonstad/WOOD/Model_Tonstad_WOOD_Roughness.png",
         ao: "assets/models/Tonstad/WOOD/Tonstad_AO.png"
       },
+
       white: {
         baseColor: "assets/models/Tonstad/WHITE/Model_Tonstad_WOOD_BaseColor.png",
         normal: "assets/models/Tonstad/WHITE/Model_Tonstad_WOOD_Normal.png",
@@ -23,7 +25,16 @@ const PRODUCT_CONFIG = {
   },
 
   hauga: {
-    cameraDirection: new THREE.Vector3(1.35, 0.82, 1.75)
+    cameraDirection: new THREE.Vector3(1.35, 0.82, 1.75),
+
+    // Exact glTF WHITE material baseColorFactor found in the uploaded HAUGA file.
+    // The exported WHITE material shares the non-color maps with WOOD but has no
+    // BaseColor texture.
+    whiteColor: new THREE.Color(
+      0.4444735646247864,
+      0.4444735646247864,
+      0.4444735646247864
+    )
   }
 };
 
@@ -63,7 +74,7 @@ class ProductViewer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.02;
+    this.renderer.toneMappingExposure = 1.01;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.sortObjects = true;
@@ -74,7 +85,7 @@ class ProductViewer {
     this.controls.dampingFactor = 0.07;
     this.controls.enablePan = false;
     this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.42;
+    this.controls.autoRotateSpeed = 0.38;
     this.controls.minPolarAngle = Math.PI * 0.12;
     this.controls.maxPolarAngle = Math.PI * 0.84;
 
@@ -84,8 +95,7 @@ class ProductViewer {
     this.model = null;
     this.mixer = null;
 
-    // No procedural door/drawer transforms.
-    // Every motion comes from animation clips embedded in the GLB.
+    // Movement comes ONLY from clips embedded in the GLB.
     this.clipGroups = {
       hingedDoors: [],
       slidingDoors: [],
@@ -95,25 +105,32 @@ class ProductViewer {
     };
 
     this.allClipItems = [];
+
     this.materialUsage = new Map();
-    this.materialOriginals = new Map();
     this.primaryWoodMaterials = [];
     this.variantTextures = new Map();
+
+    // HAUGA keeps exact original WOOD materials and creates its WHITE variant
+    // from the exported material definition.
+    this.haugaMaterialBindings = [];
 
     this.modelBox = new THREE.Box3();
     this.modelSize = new THREE.Vector3();
     this.modelCenter = new THREE.Vector3();
+    this.modelRadius = 1;
     this.cameraHome = null;
 
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+
     this.pointerDown = null;
+    this.lastTap = null;
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.stage);
 
     this.bindUI();
-    this.bindTouchInteraction();
+    this.bindPointerInteraction();
     this.setupEnvironment();
     this.load();
     this.animate();
@@ -128,17 +145,17 @@ class ProductViewer {
     room.dispose();
     pmrem.dispose();
 
-    const hemi = new THREE.HemisphereLight(0xf4f0e8, 0x474b52, 0.65);
+    const hemi = new THREE.HemisphereLight(0xf4f0e8, 0x474b52, 0.62);
     this.scene.add(hemi);
 
-    const key = new THREE.DirectionalLight(0xfff2df, 3.1);
+    const key = new THREE.DirectionalLight(0xfff2df, 3.0);
     key.position.set(3.5, 6.5, 4.5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.bias = -0.0002;
     this.scene.add(key);
 
-    const fill = new THREE.DirectionalLight(0xdce8ff, 1.15);
+    const fill = new THREE.DirectionalLight(0xdce8ff, 1.08);
     fill.position.set(-4, 2.5, -2.5);
     this.scene.add(fill);
   }
@@ -168,10 +185,8 @@ class ProductViewer {
         const patchedMaterials = sourceMaterials.map((sourceMat) => {
           if (!sourceMat) return sourceMat;
 
-          // Preserve the product's original materials.
-          // Only glass receives a rendering fix.
           const mat = this.isGlassMaterial(sourceMat, obj.name)
-            ? this.makeStableGlassMaterial(sourceMat)
+            ? this.makeClearGlassMaterial(sourceMat)
             : sourceMat;
 
           const count =
@@ -183,15 +198,6 @@ class ProductViewer {
             mat,
             (this.materialUsage.get(mat) || 0) + count
           );
-
-          if (!this.materialOriginals.has(mat)) {
-            this.materialOriginals.set(mat, {
-              color: mat.color?.clone?.() || new THREE.Color(0xffffff),
-              roughness: mat.roughness,
-              metalness: mat.metalness,
-              opacity: mat.opacity
-            });
-          }
 
           this.patchTextureColorSpaces(mat);
           return mat;
@@ -206,20 +212,26 @@ class ProductViewer {
       this.modelBox.getSize(this.modelSize);
       this.modelBox.getCenter(this.modelCenter);
 
+      const modelSphere = new THREE.Sphere();
+      this.modelBox.getBoundingSphere(modelSphere);
+      this.modelRadius = Math.max(modelSphere.radius, 0.01);
+
       this.findPrimaryWoodMaterials();
+      this.setupHaugaMaterialVariants();
       this.setupEmbeddedAnimations(gltf.animations || []);
 
       this.addGround();
       this.frameModel();
-      this.controls.update();
 
-      // TONSTAD has actual external WOOD / WHITE PBR variants.
       if (this.id === "tonstad") {
         await this.prepareTonstadVariants();
         await this.applyTonstadFinish("wood");
       }
 
-      // HAUGA intentionally stays on its exported PBR materials.
+      if (this.id === "hauga") {
+        this.applyHaugaFinish("wood");
+      }
+
       this.updateMotionUIAvailability();
 
       this.loadingEl.classList.add("is-hidden");
@@ -259,27 +271,27 @@ class ProductViewer {
     );
   }
 
-  makeStableGlassMaterial(sourceMat) {
-    // Preserve a glass-like look without using the problematic packed alpha.
-    // transmission=0.90 means roughly 10% material presence:
-    // visible reflections/refraction, but no milky white pane.
+  makeClearGlassMaterial(sourceMat) {
+    // Clear, subtly visible architectural/furniture glass.
+    // We intentionally ignore the packed source alpha atlas because it produced
+    // uneven/disappearing panes. Low alpha + depthWrite false gives a cleaner
+    // transparent result against the WebGL canvas.
     const glass = new THREE.MeshPhysicalMaterial({
       name: `${sourceMat.name || "GLASS"}__viewer`,
-      color: new THREE.Color(0xf7f9fa),
+      color: new THREE.Color(0xeef4f5),
       metalness: 0,
-      roughness: 0.09,
-      transmission: 0.90,
-      thickness: 0.008,
-      ior: 1.45,
-      transparent: false,
-      opacity: 1,
-      depthWrite: true,
+      roughness: 0.055,
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
       depthTest: true,
       side: THREE.DoubleSide,
-      envMapIntensity: 0.95
+      ior: 1.45,
+      clearcoat: 0.20,
+      clearcoatRoughness: 0.08,
+      envMapIntensity: 0.9
     });
 
-    // Keep roughness character if the original glass has one.
     if (sourceMat.roughnessMap) {
       glass.roughnessMap = sourceMat.roughnessMap;
       glass.roughnessMap.colorSpace = THREE.NoColorSpace;
@@ -308,6 +320,68 @@ class ProductViewer {
     this.primaryWoodMaterials = namedWood.length
       ? namedWood.map(([mat]) => mat)
       : entries.slice(0, 1).map(([mat]) => mat);
+  }
+
+  setupHaugaMaterialVariants() {
+    if (this.id !== "hauga" || !this.model) return;
+
+    const whiteByWoodMaterial = new Map();
+
+    this.model.traverse((obj) => {
+      if (!obj.isMesh || !obj.material) return;
+
+      const materials = Array.isArray(obj.material)
+        ? obj.material
+        : [obj.material];
+
+      materials.forEach((mat, index) => {
+        if (!mat || !/^WOOD$/i.test(mat.name || "")) return;
+
+        let white = whiteByWoodMaterial.get(mat);
+
+        if (!white) {
+          white = mat.clone();
+          white.name = "WHITE__viewer";
+
+          // Match the exported HAUGA WHITE material definition:
+          // no BaseColor texture, constant base color, while retaining
+          // normal / AO / roughness / metallic / emissive maps from the set.
+          white.map = null;
+
+          if (white.color) {
+            white.color.copy(this.config.whiteColor);
+          }
+
+          white.needsUpdate = true;
+          whiteByWoodMaterial.set(mat, white);
+        }
+
+        this.haugaMaterialBindings.push({
+          mesh: obj,
+          index,
+          wood: mat,
+          white
+        });
+      });
+    });
+  }
+
+  applyHaugaFinish(finish) {
+    if (this.id !== "hauga" || !this.haugaMaterialBindings.length) return;
+
+    this.haugaMaterialBindings.forEach((binding) => {
+      const target = finish === "white"
+        ? binding.white
+        : binding.wood;
+
+      if (Array.isArray(binding.mesh.material)) {
+        const list = [...binding.mesh.material];
+        list[binding.index] = target;
+        binding.mesh.material = list;
+      } else {
+        binding.mesh.material = target;
+      }
+    });
   }
 
   async prepareTonstadVariants() {
@@ -412,6 +486,7 @@ class ProductViewer {
       this.allClipItems.push(item);
     });
 
+    this.promoteUnclassifiedTranslationsToDrawers();
     this.mixer.update(0);
   }
 
@@ -480,6 +555,28 @@ class ProductViewer {
     return "other";
   }
 
+  promoteUnclassifiedTranslationsToDrawers() {
+    // Furniture exports often contain generic action names. If a clip only moves
+    // position and wasn't identified as a door, it is much more likely to be a
+    // drawer / pull-out than an arbitrary transform.
+    const stillOther = [];
+
+    this.clipGroups.other.forEach((item) => {
+      const positionOnly =
+        item.properties.has("position") &&
+        !item.properties.has("quaternion") &&
+        !item.properties.has("scale");
+
+      if (positionOnly) {
+        this.clipGroups.drawers.push(item);
+      } else {
+        stillOther.push(item);
+      }
+    });
+
+    this.clipGroups.other = stillOther;
+  }
+
   getDoorClips() {
     return [
       ...this.clipGroups.hingedDoors,
@@ -526,18 +623,17 @@ class ProductViewer {
   }
 
   /* ------------------------------------------------
-     TOUCH / CLICK ANIMATION
+     TOUCH / CLICK / FOCUS ZOOM
   ------------------------------------------------ */
 
-  bindTouchInteraction() {
+  bindPointerInteraction() {
     this.canvas.addEventListener("pointerdown", (event) => {
       if (event.button !== undefined && event.button !== 0) return;
 
       this.pointerDown = {
         x: event.clientX,
         y: event.clientY,
-        time: performance.now(),
-        pointerId: event.pointerId
+        time: performance.now()
       };
     });
 
@@ -551,23 +647,47 @@ class ProductViewer {
 
       this.pointerDown = null;
 
-      // Orbit/drag gesture: do not activate an object.
+      // A drag belongs to OrbitControls, not interaction.
       if (distance > 9 || elapsed > 650) return;
 
-      const item = this.findAnimationAtPointer(
-        event.clientX,
-        event.clientY
-      );
+      const hit = this.findHitAtPointer(event.clientX, event.clientY);
+      if (!hit) return;
 
-      if (!item) return;
+      const now = performance.now();
+      const previousTap = this.lastTap;
+
+      const isDoubleTap =
+        previousTap &&
+        now - previousTap.time < 340 &&
+        Math.hypot(
+          event.clientX - previousTap.x,
+          event.clientY - previousTap.y
+        ) < 28;
+
+      this.lastTap = {
+        time: now,
+        x: event.clientX,
+        y: event.clientY
+      };
 
       this.controls.autoRotate = false;
-      this.toggleClip(item);
+
+      if (isDoubleTap) {
+        this.focusObject(hit.object);
+        this.lastTap = null;
+        return;
+      }
+
+      const item = this.findClipForObject(hit.object);
+
+      if (item) {
+        this.toggleClip(item);
+      }
     });
   }
 
-  findAnimationAtPointer(clientX, clientY) {
-    if (!this.model || !this.allClipItems.length) return null;
+  findHitAtPointer(clientX, clientY) {
+    if (!this.model) return null;
 
     const rect = this.canvas.getBoundingClientRect();
 
@@ -587,25 +707,19 @@ class ProductViewer {
       true
     );
 
-    for (const hit of hits) {
-      const item = this.findClipForObject(hit.object);
-      if (item) return item;
-    }
-
-    return null;
+    return hits[0] || null;
   }
 
   findClipForObject(object) {
     const ancestors = new Set();
     let cursor = object;
 
-    while (cursor && cursor !== this.model.parent) {
+    while (cursor) {
       if (cursor.name) ancestors.add(cursor.name);
       if (cursor === this.model) break;
       cursor = cursor.parent;
     }
 
-    // Prefer direct target/ancestor matches.
     for (const item of this.allClipItems) {
       if (
         item.targetNames.some((name) =>
@@ -616,14 +730,13 @@ class ProductViewer {
       }
     }
 
-    // Fallback: check whether the clicked mesh is inside
-    // the animated target node.
     for (const item of this.allClipItems) {
       for (const targetName of item.targetNames) {
         const target = this.model.getObjectByName(targetName);
         if (!target) continue;
 
         let node = object;
+
         while (node) {
           if (node === target) return item;
           if (node === this.model) break;
@@ -642,6 +755,7 @@ class ProductViewer {
 
   tweenClip(item, targetValue) {
     const duration = Math.max(item.clip.duration, 0.001);
+
     const from = THREE.MathUtils.clamp(
       item.action.time / duration,
       0,
@@ -657,7 +771,6 @@ class ProductViewer {
     const token = ++item.tweenToken;
     const start = performance.now();
 
-    // Quick enough to feel tactile, slow enough to read.
     const tweenDuration = 420 * Math.max(
       Math.abs(to - from),
       0.28
@@ -694,6 +807,102 @@ class ProductViewer {
       } else {
         item.isOpen = to >= 0.5;
         this.syncGroupSlider(item);
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  focusObject(object) {
+    if (!object || !this.model) return;
+
+    let target = object;
+    let box = new THREE.Box3().setFromObject(target);
+    let sphere = new THREE.Sphere();
+    box.getBoundingSphere(sphere);
+
+    // Climb until the target is large enough to make a useful framing.
+    while (
+      target.parent &&
+      target.parent !== this.model &&
+      sphere.radius < this.modelRadius * 0.075
+    ) {
+      target = target.parent;
+      box = new THREE.Box3().setFromObject(target);
+      box.getBoundingSphere(sphere);
+    }
+
+    if (!Number.isFinite(sphere.radius) || sphere.radius <= 0) return;
+
+    const fromPosition = this.camera.position.clone();
+    const fromTarget = this.controls.target.clone();
+
+    const cameraDirection = this.camera.position
+      .clone()
+      .sub(this.controls.target)
+      .normalize();
+
+    const desiredDistance = THREE.MathUtils.clamp(
+      sphere.radius /
+        Math.sin(
+          THREE.MathUtils.degToRad(
+            this.camera.fov * 0.5
+          )
+        ) *
+        1.55,
+      this.controls.minDistance,
+      this.modelRadius * 4
+    );
+
+    const toTarget = sphere.center.clone();
+
+    const toPosition = toTarget
+      .clone()
+      .addScaledVector(
+        cameraDirection,
+        desiredDistance
+      );
+
+    this.tweenCamera(
+      fromPosition,
+      toPosition,
+      fromTarget,
+      toTarget
+    );
+  }
+
+  tweenCamera(fromPosition, toPosition, fromTarget, toTarget) {
+    const start = performance.now();
+    const duration = 520;
+
+    const ease = (t) =>
+      1 - Math.pow(1 - t, 3);
+
+    const step = (now) => {
+      const p = THREE.MathUtils.clamp(
+        (now - start) / duration,
+        0,
+        1
+      );
+
+      const e = ease(p);
+
+      this.camera.position.lerpVectors(
+        fromPosition,
+        toPosition,
+        e
+      );
+
+      this.controls.target.lerpVectors(
+        fromTarget,
+        toTarget,
+        e
+      );
+
+      this.controls.update();
+
+      if (p < 1) {
+        requestAnimationFrame(step);
       }
     };
 
@@ -796,7 +1005,7 @@ class ProductViewer {
 
     const material = new THREE.ShadowMaterial({
       color: 0x000000,
-      opacity: 0.17,
+      opacity: 0.16,
       transparent: true
     });
 
@@ -840,7 +1049,7 @@ class ProductViewer {
           this.camera.fov * 0.5
         )
       ) *
-      1.15;
+      1.12;
 
     this.camera.position
       .copy(sphere.center)
@@ -862,7 +1071,7 @@ class ProductViewer {
     );
 
     this.controls.minDistance =
-      radius * 0.65;
+      radius * 0.45;
 
     this.controls.maxDistance =
       radius * 6;
@@ -871,21 +1080,24 @@ class ProductViewer {
       position: this.camera.position.clone(),
       target: this.controls.target.clone()
     };
+
+    this.controls.update();
   }
 
   resetCamera() {
     if (!this.cameraHome) return;
 
-    this.camera.position.copy(
-      this.cameraHome.position
-    );
-
-    this.controls.target.copy(
-      this.cameraHome.target
-    );
+    const fromPosition = this.camera.position.clone();
+    const fromTarget = this.controls.target.clone();
 
     this.controls.autoRotate = true;
-    this.controls.update();
+
+    this.tweenCamera(
+      fromPosition,
+      this.cameraHome.position.clone(),
+      fromTarget,
+      this.cameraHome.target.clone()
+    );
   }
 
   /* ------------------------------------------------
@@ -913,6 +1125,12 @@ class ProductViewer {
 
         if (this.id === "tonstad") {
           await this.applyTonstadFinish(
+            finish
+          );
+        }
+
+        if (this.id === "hauga") {
+          this.applyHaugaFinish(
             finish
           );
         }
@@ -1037,9 +1255,11 @@ class ProductViewer {
               ? ` → ${item.targetNames.join(", ")}`
               : "";
 
+          const props = [...item.properties].join(", ");
+
           return `${
             item.clip.name || "(unnamed)"
-          }${targets}`;
+          }${targets}${props ? ` [${props}]` : ""}`;
         });
 
         return `${group}\n${

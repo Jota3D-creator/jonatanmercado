@@ -382,7 +382,7 @@
           </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Tap animated parts · Use controls to configure</span>
+            <span>Drag to orbit · Tap animated parts · Double tap to focus</span>
             <span>TONSTAD</span>
           </div>
         </article>
@@ -412,9 +412,18 @@
             </div>
 
             <div class="viewer-toolbar" aria-label="HAUGA viewer controls">
-              <div class="viewer-material-note" aria-label="HAUGA uses original materials">
-                <span>Materials</span>
-                <strong>Original PBR</strong>
+              <div class="viewer-control-group viewer-materials">
+                <span class="viewer-control-label">Material</span>
+                <div class="viewer-swatches" role="group" aria-label="HAUGA material">
+                  <button type="button" class="viewer-swatch is-active" data-finish="wood" aria-pressed="true">
+                    <span class="swatch-color swatch-hauga-wood"></span>
+                    <span>Wood</span>
+                  </button>
+                  <button type="button" class="viewer-swatch" data-finish="white" aria-pressed="false">
+                    <span class="swatch-color swatch-hauga-white"></span>
+                    <span>White</span>
+                  </button>
+                </div>
               </div>
 
               <div class="viewer-control-group">
@@ -450,7 +459,7 @@
           </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Tap animated parts · Pinch / scroll to zoom</span>
+            <span>Drag to orbit · Tap animated parts · Double tap to focus</span>
             <span>HAUGA</span>
           </div>
         </article>
@@ -460,9 +469,9 @@
       <div class="viewer-note reveal">
         <span>Viewer note</span>
         <p>
-          TONSTAD uses the uploaded WOOD / WHITE PBR texture sets.
-          HAUGA keeps its original wood texture and exposes non-destructive finish tints.
-          Transparent glass is corrected at runtime for stable depth sorting.
+          TONSTAD uses its WOOD / WHITE PBR texture sets.
+          HAUGA switches between its wood setup and the embedded white material definition.
+          Glass is kept subtle and transparent while preserving stable depth behavior.
         </p>
       </div>
 
