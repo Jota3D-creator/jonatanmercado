@@ -1041,3 +1041,411 @@ model-viewer{
     transition:none;
   }
 }
+
+
+/* ==================================================
+   V3 — COMPACT EDITORIAL PASS
+   Smaller type, tighter rhythm, consistent text widths
+================================================== */
+
+:root{
+  --pad:clamp(20px,3.8vw,64px);
+  --max:1560px;
+}
+
+/* Keep composition controlled on ultrawide screens */
+.hero > *,
+.statement > *,
+.work > .section-heading,
+.work > .case-study:not(.case-dark),
+.interactive > *,
+.systems > *,
+.reel > *,
+.about > *,
+.contact > *{
+  width:100%;
+  max-width:var(--max);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.section-pad{
+  padding-top:clamp(64px,7.5vw,112px);
+  padding-bottom:clamp(64px,7.5vw,112px);
+}
+
+/* Header */
+.site-header{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+
+.brand{
+  gap:10px;
+  font-size:10px;
+}
+
+.brand-mark{
+  width:29px;
+  height:29px;
+}
+
+.nav{
+  gap:24px;
+  font-size:11px;
+}
+
+/* Small labels */
+.eyebrow,
+.hero-kicker{
+  font-size:9px;
+  letter-spacing:.16em;
+}
+
+.tags{
+  margin-top:13px!important;
+  font-size:9px!important;
+}
+
+.text-link{
+  font-size:10px;
+}
+
+.button{
+  min-height:42px;
+  padding:0 16px;
+  font-size:10px;
+}
+
+/* Hero */
+.hero{
+  min-height:94svh;
+  padding-top:110px;
+}
+
+.hero-title{
+  font-size:clamp(49px,6.9vw,108px);
+  line-height:.91;
+  letter-spacing:-.058em;
+  margin-top:22px;
+  max-width:1180px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.hero-kicker{
+  max-width:1180px;
+}
+
+.hero-bottom{
+  grid-template-columns:minmax(0,620px) 1fr;
+  gap:45px;
+  margin-top:42px;
+  max-width:1180px;
+}
+
+.hero-copy{
+  font-size:clamp(16px,1.45vw,22px);
+  line-height:1.38;
+  max-width:590px;
+}
+
+.hero-actions{
+  gap:9px;
+}
+
+.hero-meta{
+  max-width:1180px;
+  margin-top:46px;
+  padding-top:13px;
+  font-size:9px;
+}
+
+/* Statement */
+.statement{
+  padding-top:clamp(72px,7vw,105px);
+  padding-bottom:clamp(72px,7vw,105px);
+}
+
+.statement > *{
+  max-width:1240px;
+}
+
+.statement-copy{
+  font-size:clamp(30px,3.8vw,58px);
+  line-height:1.08;
+  max-width:1160px;
+  margin-top:28px;
+}
+
+/* Section headers */
+.section-heading{
+  gap:40px;
+  margin-bottom:48px;
+}
+
+.section-heading h2{
+  font-size:clamp(34px,4vw,60px);
+  line-height:1.02;
+  letter-spacing:-.04em;
+  margin-top:16px;
+  max-width:860px;
+}
+
+.section-intro{
+  max-width:410px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* Cases */
+.case-study{
+  margin-top:clamp(82px,9vw,138px);
+}
+
+.case-header{
+  grid-template-columns:minmax(0,1fr) minmax(300px,.52fr);
+  gap:clamp(38px,6vw,90px);
+  margin-bottom:30px;
+  padding-top:14px;
+}
+
+.case-header h3{
+  margin-top:13px;
+  font-size:clamp(31px,4vw,60px);
+  line-height:.98;
+  letter-spacing:-.046em;
+}
+
+.case-description{
+  max-width:470px;
+}
+
+.case-description p{
+  font-size:13px;
+  line-height:1.55;
+}
+
+.case-index,
+.viewer-index{
+  font-size:9px;
+}
+
+.product-layout{
+  gap:clamp(22px,3vw,48px);
+  margin-top:clamp(46px,5.5vw,82px);
+}
+
+.product-detail-column{
+  gap:26px;
+  padding-top:5.5vw;
+}
+
+.micro-copy{
+  max-width:330px;
+  font-size:clamp(16px,1.35vw,21px);
+  line-height:1.4;
+}
+
+.media-wide{
+  margin-top:clamp(46px,5.5vw,82px);
+}
+
+/* Dark case */
+.case-dark-inner{
+  padding-top:clamp(68px,7vw,108px);
+  padding-bottom:clamp(68px,7vw,108px);
+}
+
+.case-dark-inner > *{
+  width:100%;
+  max-width:var(--max);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.robot-details{
+  gap:12px;
+  margin-top:12px;
+}
+
+/* Video */
+.case-link-row{
+  padding-top:13px;
+}
+
+/* Interactive */
+.viewer-grid{
+  gap:12px;
+}
+
+.viewer-card-head,
+.viewer-card-foot{
+  min-height:50px;
+  padding-left:15px;
+  padding-right:15px;
+}
+
+.viewer-card-head h3{
+  font-size:17px;
+}
+
+model-viewer{
+  height:min(42vw,590px);
+  min-height:470px;
+}
+
+.feature-grid{
+  margin-top:48px;
+}
+
+.feature{
+  min-height:158px;
+  padding-top:21px;
+}
+
+.feature h3{
+  font-size:16px;
+  margin-top:20px;
+}
+
+.feature p{
+  font-size:12px;
+}
+
+/* Systems */
+.system-row{
+  grid-template-columns:55px .85fr 1.15fr 30px;
+  padding:23px 0;
+}
+
+.system-row h3{
+  font-size:clamp(20px,1.8vw,29px);
+}
+
+.system-row p{
+  font-size:12px;
+}
+
+/* About */
+.about-grid{
+  grid-template-columns:.72fr 1.28fr;
+  gap:7vw;
+}
+
+.about-heading h2{
+  font-size:clamp(40px,4.8vw,70px);
+  margin-top:18px;
+}
+
+.about-mark{
+  width:clamp(70px,7vw,110px);
+  margin-top:40px;
+}
+
+.about-copy>p{
+  font-size:clamp(19px,2vw,29px);
+  line-height:1.27;
+  margin-bottom:21px;
+  max-width:860px;
+}
+
+.about-meta{
+  margin-top:46px;
+  padding-top:18px;
+}
+
+.about-meta span{
+  font-size:12px;
+}
+
+/* Contact */
+.contact{
+  min-height:76svh;
+}
+
+.contact-title{
+  font-size:clamp(45px,6.3vw,94px);
+  line-height:.93;
+  margin-top:22px;
+  margin-bottom:38px;
+}
+
+.contact footer{
+  margin-top:68px;
+}
+
+/* Tablet */
+@media(max-width:900px){
+  .hero-title,
+  .hero-kicker,
+  .hero-bottom,
+  .hero-meta{
+    max-width:none;
+  }
+
+  .hero{
+    min-height:auto;
+    padding-top:125px;
+  }
+
+  .hero-bottom{
+    margin-top:36px;
+  }
+
+  .case-header{
+    gap:26px;
+  }
+
+  .product-detail-column{
+    padding-top:0;
+  }
+
+  model-viewer{
+    min-height:420px;
+  }
+}
+
+/* Phone */
+@media(max-width:600px){
+  :root{
+    --pad:20px;
+  }
+
+  .hero-title{
+    font-size:13.5vw;
+  }
+
+  .hero-copy{
+    font-size:17px;
+  }
+
+  .hero-meta{
+    margin-top:38px;
+  }
+
+  .section-heading{
+    margin-bottom:38px;
+  }
+
+  .case-study{
+    margin-top:88px;
+  }
+
+  .case-header h3{
+    font-size:10.5vw;
+  }
+
+  .statement-copy{
+    font-size:9.8vw;
+  }
+
+  model-viewer{
+    height:88vw;
+    min-height:350px;
+  }
+
+  .contact{
+    min-height:68svh;
+  }
+}
