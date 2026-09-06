@@ -139,7 +139,8 @@
               />
             </figure>
 
-            <div class="copy-card product-copy reveal">
+            <div class="product-copy editorial-caption reveal">
+              <span class="editorial-caption-label">Material study / 01</span>
               <p class="micro-copy">
                 Commercial imagery, material studies and atmospheric product lighting.
               </p>
@@ -401,8 +402,15 @@
 
               <div class="viewer-control-group">
                 <label class="viewer-range-label">
-                  <span>Doors</span>
-                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="doors" />
+                  <span>Sliding doors</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="slidingDoors" />
+                </label>
+              </div>
+
+              <div class="viewer-control-group">
+                <label class="viewer-range-label">
+                  <span>Hinged doors</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="hingedDoors" />
                 </label>
               </div>
 
@@ -734,5 +742,6 @@
 
   <script src="script.js"></script>
   <script type="module" src="viewer.js"></script>
+  <script src="gallery.js"></script>
 </body>
 </html>
