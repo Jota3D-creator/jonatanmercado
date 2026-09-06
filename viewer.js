@@ -27,6 +27,15 @@ const PRODUCT_CONFIG = {
   hauga: {
     cameraDirection: new THREE.Vector3(1.35, 0.82, 1.75),
 
+    // Exact drawer nodes present in Almacenamiento_Hauga.glb.
+    // They are named as animation nodes in Blender but the supplied GLB does not
+    // serialize AnimationClips for them, so we map only these exact nodes.
+    exactDrawerNodes: {
+      "anim_Cajon 1": { axis: "z", distance: 0.22, sign: 1 },
+      "anim_Cajon 2": { axis: "z", distance: 0.22, sign: 1 },
+      "anim_Cajon 3": { axis: "z", distance: 0.22, sign: 1 }
+    },
+
     // Exact glTF WHITE material baseColorFactor found in the uploaded HAUGA file.
     // The exported WHITE material shares the non-color maps with WOOD but has no
     // BaseColor texture.
@@ -105,6 +114,11 @@ class ProductViewer {
     };
 
     this.allClipItems = [];
+
+    // Some exported furniture files keep clearly named drawer nodes (for example
+    // `anim_Cajon 1`) but do not actually serialize AnimationClips for them.
+    // We keep a very narrow fallback for those named nodes only.
+    this.drawerFallbackNodes = [];
 
     this.materialUsage = new Map();
     this.primaryWoodMaterials = [];
@@ -219,6 +233,7 @@ class ProductViewer {
       this.findPrimaryWoodMaterials();
       this.setupHaugaMaterialVariants();
       this.setupEmbeddedAnimations(gltf.animations || []);
+      this.setupNamedDrawerFallbacks();
 
       this.addGround();
       this.frameModel();
@@ -577,6 +592,152 @@ class ProductViewer {
     this.clipGroups.other = stillOther;
   }
 
+  setupNamedDrawerFallbacks() {
+    if (!this.model) return;
+
+    const animatedTargets = new Set(
+      this.allClipItems.flatMap((item) => item.targetNames)
+    );
+
+    const exact = this.config.exactDrawerNodes || null;
+
+    // HAUGA: use the three exact anim_Cajon nodes we inspected in the GLB.
+    // This avoids guessing the axis or distance from camera orientation.
+    if (exact) {
+      Object.entries(exact).forEach(([name, motion]) => {
+        const obj = this.model.getObjectByName(name);
+
+        if (!obj) return;
+        if (animatedTargets.has(name)) return;
+
+        this.drawerFallbackNodes.push({
+          obj,
+          axis: motion.axis,
+          sign: motion.sign ?? 1,
+          distance: motion.distance,
+          originalPosition: obj.position.clone(),
+          value: 0,
+          tweenToken: 0
+        });
+      });
+
+      return;
+    }
+
+    // Generic fallback for other products only when a clearly named drawer node
+    // exists but no embedded animation clip targets it.
+    const axis =
+      Math.abs(this.config.cameraDirection.z) >=
+      Math.abs(this.config.cameraDirection.x)
+        ? "z"
+        : "x";
+
+    const sign = Math.sign(this.config.cameraDirection[axis]) || 1;
+
+    this.model.traverse((obj) => {
+      if (!obj.name || !NAME_PATTERNS.drawer.test(obj.name)) return;
+      if (animatedTargets.has(obj.name)) return;
+
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+
+      if (!Number.isFinite(size[axis]) || size[axis] <= 0) return;
+
+      const distance = Math.min(
+        size[axis] * 0.52,
+        this.modelSize[axis] * 0.48
+      );
+
+      this.drawerFallbackNodes.push({
+        obj,
+        axis,
+        sign,
+        distance,
+        originalPosition: obj.position.clone(),
+        value: 0,
+        tweenToken: 0
+      });
+    });
+  }
+
+  setDrawerFallback(value) {
+    const t = THREE.MathUtils.clamp(value, 0, 1);
+
+    this.drawerFallbackNodes.forEach((item) => {
+      item.tweenToken += 1;
+      item.value = t;
+      item.obj.position.copy(item.originalPosition);
+      item.obj.position[item.axis] += item.sign * item.distance * t;
+    });
+  }
+
+  findDrawerFallbackForObject(object) {
+    if (!object || !this.drawerFallbackNodes.length) return null;
+
+    for (const item of this.drawerFallbackNodes) {
+      let node = object;
+
+      while (node) {
+        if (node === item.obj) return item;
+        if (node === this.model) break;
+        node = node.parent;
+      }
+    }
+
+    return null;
+  }
+
+  toggleDrawerFallback(item) {
+    if (!item) return;
+    const target = item.value >= 0.5 ? 0 : 1;
+    this.tweenDrawerFallback(item, target);
+  }
+
+  tweenDrawerFallback(item, targetValue) {
+    const from = THREE.MathUtils.clamp(item.value, 0, 1);
+    const to = THREE.MathUtils.clamp(targetValue, 0, 1);
+    const token = ++item.tweenToken;
+    const start = performance.now();
+    const duration = 380 * Math.max(Math.abs(to - from), 0.3);
+
+    const ease = (t) =>
+      t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const step = (now) => {
+      if (item.tweenToken !== token) return;
+
+      const p = THREE.MathUtils.clamp((now - start) / duration, 0, 1);
+      const value = THREE.MathUtils.lerp(from, to, ease(p));
+
+      item.value = value;
+      item.obj.position.copy(item.originalPosition);
+      item.obj.position[item.axis] += item.sign * item.distance * value;
+
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else {
+        this.syncDrawerFallbackSlider();
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  syncDrawerFallbackSlider() {
+    const range = this.root.querySelector('[data-motion="drawers"]');
+    if (!range || !this.drawerFallbackNodes.length) return;
+
+    const average = this.drawerFallbackNodes.reduce(
+      (sum, item) => sum + item.value,
+      0
+    ) / this.drawerFallbackNodes.length;
+
+    range.value = String(Math.round(average * 100));
+  }
+
   getDoorClips() {
     return [
       ...this.clipGroups.hingedDoors,
@@ -611,11 +772,16 @@ class ProductViewer {
       this.clipGroups[type] || [],
       value
     );
+
+    if (type === "drawers") {
+      this.setDrawerFallback(value);
+    }
   }
 
   setAllMotion(value) {
     this.setClipItems(this.getDoorClips(), value);
     this.setClipItems(this.clipGroups.drawers, value);
+    this.setDrawerFallback(value);
 
     this.root.querySelectorAll(".viewer-range").forEach((range) => {
       range.value = String(Math.round(value * 100));
@@ -682,6 +848,13 @@ class ProductViewer {
 
       if (item) {
         this.toggleClip(item);
+        return;
+      }
+
+      const drawerFallback = this.findDrawerFallbackForObject(hit.object);
+
+      if (drawerFallback) {
+        this.toggleDrawerFallback(drawerFallback);
       }
     });
   }
@@ -956,7 +1129,9 @@ class ProductViewer {
       doors: this.getDoorClips().length > 0,
       slidingDoors: this.clipGroups.slidingDoors.length > 0,
       hingedDoors: this.clipGroups.hingedDoors.length > 0,
-      drawers: this.clipGroups.drawers.length > 0
+      drawers:
+        this.clipGroups.drawers.length > 0 ||
+        this.drawerFallbackNodes.length > 0
     };
 
     Object.entries(availability).forEach(([motion, available]) => {
@@ -1289,6 +1464,17 @@ class ProductViewer {
           <strong>Classification</strong>
           <pre>${escapeHtml(
             groupText
+          )}</pre>
+        </div>
+
+        <div>
+          <strong>Named drawer fallbacks</strong>
+          <pre>${escapeHtml(
+            this.drawerFallbackNodes.length
+              ? this.drawerFallbackNodes
+                  .map((item) => `${item.obj.name} → ${item.axis.toUpperCase()} ${item.distance.toFixed(3)} m`)
+                  .join("\n")
+              : "none"
           )}</pre>
         </div>
       </div>
