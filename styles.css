@@ -1810,3 +1810,293 @@ model-viewer{
     animation:none;
   }
 }
+
+
+/* ==================================================
+   V5 — LAYOUT COHERENCE + TOOL CASES
+================================================== */
+
+/* Less dead space above the hero */
+.hero{
+  min-height:auto;
+  justify-content:flex-start;
+  padding-top:clamp(112px,8.5vw,150px);
+  padding-bottom:clamp(56px,5.5vw,82px);
+}
+
+.hero-kicker,
+.hero-title,
+.hero-bottom,
+.hero-meta{
+  max-width:1180px;
+}
+
+.hero-title{
+  margin-top:20px;
+}
+
+.hero-bottom{
+  margin-top:34px;
+}
+
+.hero-meta{
+  margin-top:34px;
+}
+
+/* Descriptive copy becomes a deliberate component instead of floating text */
+.copy-card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.34);
+  padding:18px 20px;
+}
+
+.section-dark .copy-card,
+.case-dark .copy-card{
+  border-color:var(--line-dark);
+  background:rgba(255,255,255,.045);
+}
+
+.section-intro-card{
+  max-width:430px;
+  margin-bottom:0;
+}
+
+.case-description.copy-card{
+  padding:18px 20px;
+}
+
+.case-description.copy-card p:first-child{
+  max-width:420px;
+}
+
+.case-description.copy-card .tags{
+  padding-top:13px;
+  margin-top:14px!important;
+  border-top:1px solid var(--line);
+}
+
+.case-dark .case-description.copy-card .tags{
+  border-color:var(--line-dark);
+}
+
+/* Align the product images to the same top edge */
+.product-layout{
+  grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);
+  align-items:start;
+}
+
+.product-detail-column{
+  padding-top:0;
+  gap:18px;
+  align-self:start;
+}
+
+.product-faucet{
+  align-self:start;
+}
+
+.product-faucet img{
+  width:100%;
+  aspect-ratio:1 / 1.25;
+  object-fit:cover;
+}
+
+.product-copy{
+  margin:0;
+}
+
+.product-copy .micro-copy{
+  margin:0;
+  max-width:360px;
+  font-size:clamp(15px,1.2vw,19px);
+  line-height:1.42;
+}
+
+/* Keep the full character visible — no vertical crop */
+.robot-main{
+  max-width:920px;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  background:#d7ddd3;
+}
+
+.robot-main img{
+  width:100%;
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+  object-position:center center;
+}
+
+/* The detail images align under the centered hero character */
+.robot-details{
+  max-width:1180px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+/* Systems become actual case cards */
+.systems-heading{
+  align-items:flex-end;
+}
+
+.systems-intro-card{
+  max-width:520px;
+  font-size:14px;
+  line-height:1.55;
+  color:var(--muted);
+}
+
+.systems-intro-card p{
+  margin:0;
+}
+
+.system-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.system-card{
+  min-width:0;
+  padding:26px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.26);
+}
+
+.system-card-top{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--line);
+}
+
+.system-number,
+.system-type{
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.system-card h3{
+  margin:24px 0 32px;
+  font-size:clamp(25px,2.1vw,34px);
+  font-weight:500;
+  letter-spacing:-.035em;
+}
+
+.system-block{
+  display:grid;
+  grid-template-columns:112px 1fr;
+  gap:18px;
+  padding:17px 0;
+  border-top:1px solid var(--line);
+}
+
+.system-block small{
+  padding-top:2px;
+  color:var(--muted);
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+
+.system-block p{
+  margin:0;
+  max-width:520px;
+  color:#575751;
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* Old flat-list styling no longer participates */
+.system-list,
+.system-row{
+  display:none;
+}
+
+/* A little less air between major work blocks */
+.case-study{
+  margin-top:clamp(72px,7.5vw,118px);
+}
+
+.section-heading{
+  margin-bottom:40px;
+}
+
+/* Interactive viewer: keep the two products visually aligned */
+.viewer-grid{
+  align-items:start;
+}
+
+/* HAUGA current file is Almacenamiento_Hauga.glb (no _v2). */
+
+/* --------------------------------------------------
+   RESPONSIVE V5
+-------------------------------------------------- */
+
+@media(max-width:900px){
+  .hero{
+    padding-top:105px;
+  }
+
+  .product-layout{
+    grid-template-columns:1fr;
+  }
+
+  .product-detail-column{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .product-faucet{
+    max-width:620px;
+  }
+
+  .system-grid{
+    grid-template-columns:1fr;
+  }
+
+  .system-block{
+    grid-template-columns:100px 1fr;
+  }
+}
+
+@media(max-width:600px){
+  .hero{
+    padding-top:92px;
+    padding-bottom:46px;
+  }
+
+  .hero-title{
+    font-size:12.6vw;
+  }
+
+  .hero-bottom,
+  .hero-meta{
+    margin-top:28px;
+  }
+
+  .copy-card{
+    padding:15px;
+  }
+
+  .robot-main{
+    max-width:100%;
+  }
+
+  .system-card{
+    padding:19px;
+  }
+
+  .system-card h3{
+    margin:20px 0 25px;
+  }
+
+  .system-block{
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+}

@@ -88,7 +88,7 @@
           <p class="eyebrow">Selected work</p>
           <h2>Selected work.</h2>
         </div>
-        <p class="section-intro dark-copy">
+        <p class="section-intro dark-copy copy-card section-intro-card">
           Product visualization, hard-surface assets, real-time cinematics and architectural imagery.
         </p>
       </div>
@@ -101,7 +101,7 @@
             <p class="case-index">01 / PRODUCT VISUALIZATION</p>
             <h3>Product<br />Visualization.</h3>
           </div>
-          <div class="case-description">
+          <div class="case-description copy-card">
             <p>
               Photoreal product imagery built around material response, lighting
               and controlled composition.
@@ -130,10 +130,6 @@
           </figure>
 
           <div class="product-detail-column">
-            <p class="micro-copy reveal">
-              Commercial imagery, material studies and atmospheric product lighting.
-            </p>
-
             <figure class="media product-faucet reveal">
               <img
                 src="assets/images/product-visualization-faucet-01.png"
@@ -142,6 +138,12 @@
                 decoding="async"
               />
             </figure>
+
+            <div class="copy-card product-copy reveal">
+              <p class="micro-copy">
+                Commercial imagery, material studies and atmospheric product lighting.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -164,7 +166,7 @@
               <p class="case-index">02 / HARD SURFACE</p>
               <h3>Hard Surface<br />Character.</h3>
             </div>
-            <div class="case-description">
+            <div class="case-description copy-card">
               <p>
                 Mechanical asset work combining modeling, material breakup,
                 wear and close-up surface detail.
@@ -212,7 +214,7 @@
             <p class="case-index">03 / REAL-TIME CINEMATIC</p>
             <h3>Strange Planet.</h3>
           </div>
-          <div class="case-description">
+          <div class="case-description copy-card">
             <p>
               Real-time cinematic created in Unreal Engine, focused on environment,
               lighting and visual atmosphere.
@@ -246,7 +248,7 @@
             <p class="case-index">04 / ARCHITECTURAL VISUALIZATION</p>
             <h3>Architectural<br />Visualization.</h3>
           </div>
-          <div class="case-description">
+          <div class="case-description copy-card">
             <p>
               Interior imagery focused on daylight, material readability
               and photographic composition.
@@ -358,7 +360,7 @@
         <article
           class="viewer-card reveal js-product-viewer"
           data-viewer-id="hauga"
-          data-model="assets/models/Hauga/Almacenamiento_Hauga_v2.glb"
+          data-model="assets/models/Hauga/Almacenamiento_Hauga.glb"
           data-product="HAUGA"
           aria-label="Interactive HAUGA product viewer">
 
@@ -470,41 +472,172 @@
 
     <!-- SYSTEMS -->
     <section id="systems" class="systems section-pad">
-      <div class="section-heading reveal">
+      <div class="section-heading systems-heading reveal">
         <div>
           <p class="eyebrow">Tools & systems</p>
-          <h2>Systems behind<br />the work.</h2>
+          <h2>Tools built from<br />production bottlenecks.</h2>
+        </div>
+
+        <div class="copy-card systems-intro-card">
+          <p>
+            Most of these tools started the same way: a repetitive manual task became
+            slow, inconsistent or difficult to review at scale. Instead of adding more
+            process around the problem, I built a tool to remove the bottleneck.
+          </p>
         </div>
       </div>
 
-      <div class="system-list">
-        <div class="system-row reveal">
-          <span class="system-number">01</span>
+      <div class="system-grid">
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">01</span>
+            <span class="system-type">Blender · Review</span>
+          </div>
           <h3>Texture Reviewer</h3>
-          <p>Material-family review, comparison and validation inside Blender.</p>
-          <span class="system-arrow">↗</span>
-        </div>
 
-        <div class="system-row reveal">
-          <span class="system-number">02</span>
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              Large material families were slow to validate manually. Wrong color spaces,
+              inconsistent map ratios and subtle differences between versions were easy to miss.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              A controlled review scene with original/remaster comparison, HDRI switching,
+              family navigation, non-color validation and aspect-ratio checks.
+            </p>
+          </div>
+        </article>
+
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">02</span>
+            <span class="system-type">Blender · Pipeline</span>
+          </div>
+          <h3>Asset Organizer & Exporter</h3>
+
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              Versions, collections and export states were being managed by hand.
+              That made naming drift, duplicate objects and inconsistent deliveries too easy.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              A standardized original/remaster collection structure with controlled instancing,
+              predictable naming and repeatable export of production-ready props.
+            </p>
+          </div>
+        </article>
+
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">03</span>
+            <span class="system-type">Blender · QA</span>
+          </div>
           <h3>Prop Reviewer</h3>
-          <p>Structured comparison and review for remaster and outsource production.</p>
-          <span class="system-arrow">↗</span>
-        </div>
 
-        <div class="system-row reveal">
-          <span class="system-number">03</span>
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              A remastered asset can look convincing in isolation while still drifting
+              from the source in silhouette, proportion or placement.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              A fast review setup for original-versus-remaster comparison, focused on
+              silhouette, scale, orientation and high-level shape before detail review.
+            </p>
+          </div>
+        </article>
+
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">04</span>
+            <span class="system-type">Web · QA</span>
+          </div>
           <h3>Render Compare</h3>
-          <p>Fast A/B visual comparison for render iterations and QA.</p>
-          <span class="system-arrow">↗</span>
-        </div>
 
-        <div class="system-row reveal">
-          <span class="system-number">04</span>
-          <h3>Three.js Viewer</h3>
-          <p>Browser-based GLTF inspection, product interaction and presentation.</p>
-          <span class="system-arrow">↗</span>
-        </div>
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              Small lighting, material and exposure changes are difficult to judge from memory,
+              especially across many iterations or reviewers.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              A lightweight A/B comparison tool for instant visual validation of render versions,
+              making differences obvious without switching files or applications.
+            </p>
+          </div>
+        </article>
+
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">05</span>
+            <span class="system-type">Three.js · GLTF</span>
+          </div>
+          <h3>Interactive Product Viewer</h3>
+
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              Static renders do not expose how a configurable product behaves:
+              material states, moving parts, hidden surfaces and browser performance all matter.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              A browser-based GLTF viewer with material variants, doors and drawers,
+              camera controls, product states, wall visibility logic and web-oriented asset handling.
+            </p>
+          </div>
+        </article>
+
+
+        <article class="system-card reveal">
+          <div class="system-card-top">
+            <span class="system-number">06</span>
+            <span class="system-type">Python · Optimization</span>
+          </div>
+          <h3>Batch Texture Processor</h3>
+
+          <div class="system-block">
+            <small>The blocker</small>
+            <p>
+              Oversized source textures, mixed formats and inconsistent map resolutions
+              created unnecessary memory use and repeated manual cleanup.
+            </p>
+          </div>
+
+          <div class="system-block">
+            <small>What I built</small>
+            <p>
+              Batch conversion and relinking scripts with map-specific resolution rules,
+              consistent formats and predictable texture budgets for production delivery.
+            </p>
+          </div>
+        </article>
+
       </div>
     </section>
 
