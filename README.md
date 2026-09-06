@@ -2,6 +2,8 @@
 
 A single-page portfolio concept focused on Art Direction, real-time visualization and scalable 3D production systems.
 
+https://jota3d-creator.github.io/jonatanmercado/
+
 ## Files
 - `index.html` — main page
 - `styles.css` — all layout / visual styling
