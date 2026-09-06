@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#111214;color:#eee;font-family:Arial,Helvetica,sans-serif}.scene{height:100%;display:grid;place-items:center;perspective:1200px;position:relative;background:radial-gradient(circle at 50% 42%,#2a2b2d 0,#18191b 45%,#0d0e10 80%)}.floor{position:absolute;width:900px;height:680px;background:linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px);background-size:44px 44px;transform:rotateX(72deg) translateY(250px);mask-image:radial-gradient(circle,black,transparent 68%)}.product-wrap{width:340px;height:370px;position:relative;transform-style:preserve-3d;transform:rotateX(-8deg) rotateY(-24deg);transition:transform .15s ease-out}.cabinet{position:absolute;inset:40px 25px 35px;transform-style:preserve-3d}.case{position:absolute;inset:0;background:linear-gradient(140deg,#aaa79f,#6d6d69);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 40px 70px rgba(0,0,0,.45)}.top{position:absolute;left:-8px;right:-8px;top:-16px;height:20px;background:#bebbb2;transform:translateZ(18px);box-shadow:0 8px 14px rgba(0,0,0,.25)}.door{position:absolute;top:8px;bottom:110px;width:48%;background:linear-gradient(125deg,#96938b,#777670);transform-origin:left center;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.75,.15,1);border:1px solid rgba(255,255,255,.14);cursor:pointer}.door.left{left:1%}.door.right{right:1%;transform-origin:right center}.door.left.open{transform:rotateY(-78deg)}.door.right.open{transform:rotateY(78deg)}.handle{position:absolute;top:50%;width:4px;height:28px;background:#222;border-radius:5px}.left .handle{right:14px}.right .handle{left:14px}.drawer{position:absolute;left:2%;right:2%;height:43px;background:linear-gradient(#8d8b84,#72716d);border:1px solid rgba(255,255,255,.13);transition:transform .55s cubic-bezier(.2,.75,.15,1);cursor:pointer}.drawer.d1{bottom:57px}.drawer.d2{bottom:9px}.drawer.open{transform:translateZ(115px)}.drawer:after{content:"";position:absolute;width:42px;height:3px;background:#222;left:50%;top:12px;transform:translateX(-50%);border-radius:4px}.leg{position:absolute;width:18px;height:54px;background:#313234;bottom:-52px}.l1{left:12px}.l2{right:12px}.hint{position:absolute;left:22px;bottom:20px;font-size:9px;line-height:1.6;letter-spacing:.12em;text-transform:uppercase;color:#898a8e}.hint b{color:#d4ff6b;font-weight:600}.controls{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}.controls button{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.24);color:#c8c9cc;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:9px 10px;cursor:pointer}.controls button:hover{background:#242528}.badge{position:absolute;top:18px;left:20px;font-size:9px;letter-spacing:.14em;color:#85868a}.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#c7ff52;margin-right:7px;box-shadow:0 0 12px #c7ff52}@media(max-width:600px){.product-wrap{transform:scale(.8) rotateX(-8deg) rotateY(-24deg)}.controls{right:12px;bottom:12px}.hint{left:14px;bottom:14px}}
+</style>
+</head>
+<body>
+<div class="scene" id="scene">
+  <div class="floor"></div>
+  <div class="badge"><span class="dot"></span>PRODUCT CONFIGURATION / 01</div>
+  <div class="product-wrap" id="product">
+    <div class="cabinet">
+      <div class="case"></div><div class="top"></div>
+      <div class="door left" data-part="door"><span class="handle"></span></div>
+      <div class="door right" data-part="door"><span class="handle"></span></div>
+      <div class="drawer d1" data-part="drawer"></div>
+      <div class="drawer d2" data-part="drawer"></div>
+      <div class="leg l1"></div><div class="leg l2"></div>
+    </div>
+  </div>
+  <div class="hint"><b>Click</b> doors / drawers<br><b>Drag</b> to orbit</div>
+  <div class="controls"><button id="reset">Reset</button><button id="openAll">Open all</button></div>
+</div>
+<script>
+const product=document.getElementById('product'),scene=document.getElementById('scene');let rx=-8,ry=-24,drag=false,lx=0,ly=0;
+scene.addEventListener('pointerdown',e=>{if(e.target.dataset.part)return;drag=true;lx=e.clientX;ly=e.clientY;scene.setPointerCapture(e.pointerId)});
+scene.addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-lx)*.18;rx-=(e.clientY-ly)*.11;rx=Math.max(-28,Math.min(18,rx));product.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;lx=e.clientX;ly=e.clientY});
+scene.addEventListener('pointerup',()=>drag=false);
+document.querySelectorAll('[data-part]').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('open')));
+document.getElementById('reset').onclick=()=>{document.querySelectorAll('.open').forEach(e=>e.classList.remove('open'));rx=-8;ry=-24;product.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`};
+document.getElementById('openAll').onclick=()=>document.querySelectorAll('[data-part]').forEach(e=>e.classList.add('open'));
+</script>
+</body></html>
