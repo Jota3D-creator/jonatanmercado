@@ -2564,3 +2564,232 @@ html.lightbox-open body{
 .viewer-action-row.is-unavailable{
   display:none!important;
 }
+
+
+/* ==================================================
+   V6.3 — TOUCHABLE ANIMATIONS + ORIGINAL HAUGA PBR
+================================================== */
+
+.viewer-material-note{
+  align-self:end;
+  min-width:100px;
+}
+
+.viewer-material-note span{
+  display:block;
+  margin-bottom:8px;
+  color:#8b8c90;
+  font-size:8px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.viewer-material-note strong{
+  display:block;
+  min-height:36px;
+  padding:11px 10px 0;
+  border:1px solid rgba(255,255,255,.16);
+  color:#d6d6d3;
+  font-size:8px;
+  font-weight:400;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.viewer-canvas{
+  cursor:grab;
+  touch-action:none;
+}
+
+.viewer-canvas:active{
+  cursor:grabbing;
+}
+
+.viewer-control-group.is-unavailable,
+.viewer-action-row.is-unavailable{
+  display:none!important;
+}
+
+/* HAUGA no longer reserves a large fake material selector */
+.viewer-card[data-viewer-id="hauga"] .viewer-toolbar{
+  grid-template-columns:.72fr 1fr 1fr 1fr auto;
+}
+
+@media(max-width:1320px){
+  .viewer-card[data-viewer-id="hauga"] .viewer-toolbar{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:600px){
+  .viewer-card[data-viewer-id="hauga"] .viewer-toolbar{
+    grid-template-columns:1fr;
+  }
+
+  .viewer-canvas{
+    touch-action:none;
+  }
+}
+
+
+/* ==================================================
+   V6.4 — IMAGE COMPARE / LAMP
+================================================== */
+
+.compare-media{
+  overflow:visible;
+}
+
+.image-compare{
+  --compare-position:50%;
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  background:#e8e5df;
+  cursor:ew-resize;
+  user-select:none;
+  touch-action:none;
+  isolation:isolate;
+}
+
+.image-compare img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+.image-compare-base{
+  position:relative;
+  z-index:0;
+}
+
+.image-compare-after{
+  position:absolute;
+  z-index:1;
+  inset:0;
+  width:var(--compare-position);
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.image-compare-after img{
+  width:100vw;
+  max-width:none;
+  height:100%;
+  object-fit:cover;
+  object-position:left center;
+}
+
+/* Keep the final image locked to the exact dimensions of the base image */
+.image-compare{
+  container-type:inline-size;
+}
+
+.image-compare-after img{
+  width:100cqw;
+}
+
+.image-compare-divider{
+  position:absolute;
+  z-index:3;
+  top:0;
+  bottom:0;
+  left:var(--compare-position);
+  width:1px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 0 0 1px rgba(0,0,0,.12);
+  transform:translateX(-.5px);
+  pointer-events:none;
+}
+
+.image-compare-handle{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:rgba(245,244,239,.9);
+  color:#111;
+  border:1px solid rgba(16,16,16,.18);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 8px 30px rgba(0,0,0,.1);
+}
+
+.image-compare-handle span{
+  transform:translateY(-1px);
+  font-size:15px;
+  line-height:1;
+}
+
+.image-compare-label{
+  position:absolute;
+  z-index:4;
+  top:14px;
+  padding:7px 9px;
+  border:1px solid rgba(16,16,16,.12);
+  background:rgba(245,244,239,.76);
+  color:#111;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  font-size:8px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+
+.image-compare-label-left{
+  left:14px;
+}
+
+.image-compare-label-right{
+  right:14px;
+}
+
+.image-compare-range{
+  position:absolute;
+  z-index:5;
+  inset:0;
+  width:100%;
+  height:100%;
+  margin:0;
+  opacity:0;
+  cursor:ew-resize;
+}
+
+.compare-media.zoomable-media{
+  cursor:default;
+}
+
+.compare-media .zoom-badge{
+  display:none!important;
+}
+
+@media(max-width:600px){
+  .image-compare-handle{
+    width:38px;
+    height:38px;
+  }
+
+  .image-compare-label{
+    top:10px;
+  }
+
+  .image-compare-label-left{
+    left:10px;
+  }
+
+  .image-compare-label-right{
+    right:10px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .image-compare-handle{
+    transition:none;
+  }
+}

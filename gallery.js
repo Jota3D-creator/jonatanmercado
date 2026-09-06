@@ -6,7 +6,11 @@
   ].join(",");
 
   const images = [...document.querySelectorAll(selector)].filter((img) => {
-    return !img.closest(".viewer-card") && img.naturalWidth !== 0;
+    return (
+      !img.closest(".viewer-card") &&
+      !img.closest("[data-compare]") &&
+      img.naturalWidth !== 0
+    );
   });
 
   if (!images.length) return;

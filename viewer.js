@@ -23,12 +23,7 @@ const PRODUCT_CONFIG = {
   },
 
   hauga: {
-    cameraDirection: new THREE.Vector3(1.35, 0.82, 1.75),
-    tintFinishes: {
-      original: null,
-      light: new THREE.Color(0xe9e2d6),
-      dark: new THREE.Color(0x5e554c)
-    }
+    cameraDirection: new THREE.Vector3(1.35, 0.82, 1.75)
   }
 };
 
@@ -38,7 +33,7 @@ const NAME_PATTERNS = {
   wood: /(wood|madera|timber|oak|roble|body|cabinet|carcass|frame)/i,
   door: /(door|puerta|hinged|hinge[_\s-]?door|front[_\s-]?door)/i,
   slidingDoor: /(sliding|slide|corredera|corrediza|slidedoor|sliding[_\s-]?door)/i,
-  drawer: /(drawer|cajon|cajón|gaveta)/i
+  drawer: /(drawer|cajon|cajón|gaveta|drawerfront|cajonera)/i
 };
 
 const DEBUG = new URLSearchParams(window.location.search).get("viewerDebug") === "1";
@@ -68,7 +63,7 @@ class ProductViewer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.02;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.sortObjects = true;
@@ -79,7 +74,7 @@ class ProductViewer {
     this.controls.dampingFactor = 0.07;
     this.controls.enablePan = false;
     this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.45;
+    this.controls.autoRotateSpeed = 0.42;
     this.controls.minPolarAngle = Math.PI * 0.12;
     this.controls.maxPolarAngle = Math.PI * 0.84;
 
@@ -89,9 +84,8 @@ class ProductViewer {
     this.model = null;
     this.mixer = null;
 
-    // IMPORTANT:
-    // Nothing is moved procedurally in this version.
-    // All opening/closing comes from animation clips embedded in the GLB.
+    // No procedural door/drawer transforms.
+    // Every motion comes from animation clips embedded in the GLB.
     this.clipGroups = {
       hingedDoors: [],
       slidingDoors: [],
@@ -100,6 +94,7 @@ class ProductViewer {
       other: []
     };
 
+    this.allClipItems = [];
     this.materialUsage = new Map();
     this.materialOriginals = new Map();
     this.primaryWoodMaterials = [];
@@ -110,10 +105,15 @@ class ProductViewer {
     this.modelCenter = new THREE.Vector3();
     this.cameraHome = null;
 
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
+    this.pointerDown = null;
+
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.stage);
 
     this.bindUI();
+    this.bindTouchInteraction();
     this.setupEnvironment();
     this.load();
     this.animate();
@@ -128,17 +128,17 @@ class ProductViewer {
     room.dispose();
     pmrem.dispose();
 
-    const hemi = new THREE.HemisphereLight(0xf4f0e8, 0x474b52, 0.7);
+    const hemi = new THREE.HemisphereLight(0xf4f0e8, 0x474b52, 0.65);
     this.scene.add(hemi);
 
-    const key = new THREE.DirectionalLight(0xfff2df, 3.4);
+    const key = new THREE.DirectionalLight(0xfff2df, 3.1);
     key.position.set(3.5, 6.5, 4.5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.bias = -0.0002;
     this.scene.add(key);
 
-    const fill = new THREE.DirectionalLight(0xdce8ff, 1.35);
+    const fill = new THREE.DirectionalLight(0xdce8ff, 1.15);
     fill.position.set(-4, 2.5, -2.5);
     this.scene.add(fill);
   }
@@ -161,11 +161,15 @@ class ProductViewer {
           obj.geometry.setAttribute("uv1", obj.geometry.attributes.uv.clone());
         }
 
-        const sourceMaterials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        const sourceMaterials = Array.isArray(obj.material)
+          ? obj.material
+          : [obj.material];
 
         const patchedMaterials = sourceMaterials.map((sourceMat) => {
           if (!sourceMat) return sourceMat;
 
+          // Preserve the product's original materials.
+          // Only glass receives a rendering fix.
           const mat = this.isGlassMaterial(sourceMat, obj.name)
             ? this.makeStableGlassMaterial(sourceMat)
             : sourceMat;
@@ -175,7 +179,10 @@ class ProductViewer {
             obj.geometry?.attributes?.position?.count ||
             1;
 
-          this.materialUsage.set(mat, (this.materialUsage.get(mat) || 0) + count);
+          this.materialUsage.set(
+            mat,
+            (this.materialUsage.get(mat) || 0) + count
+          );
 
           if (!this.materialOriginals.has(mat)) {
             this.materialOriginals.set(mat, {
@@ -206,11 +213,13 @@ class ProductViewer {
       this.frameModel();
       this.controls.update();
 
+      // TONSTAD has actual external WOOD / WHITE PBR variants.
       if (this.id === "tonstad") {
         await this.prepareTonstadVariants();
         await this.applyTonstadFinish("wood");
       }
 
+      // HAUGA intentionally stays on its exported PBR materials.
       this.updateMotionUIAvailability();
 
       this.loadingEl.classList.add("is-hidden");
@@ -245,29 +254,32 @@ class ProductViewer {
   }
 
   isGlassMaterial(mat, objectName = "") {
-    return NAME_PATTERNS.glass.test(`${mat?.name || ""} ${objectName || ""}`);
+    return NAME_PATTERNS.glass.test(
+      `${mat?.name || ""} ${objectName || ""}`
+    );
   }
 
   makeStableGlassMaterial(sourceMat) {
-    // Do not reuse source alpha for the pane.
-    // The attached HAUGA GLB combines BLEND alpha with an RGBA atlas,
-    // which can make parts of the window almost disappear.
+    // Preserve a glass-like look without using the problematic packed alpha.
+    // transmission=0.90 means roughly 10% material presence:
+    // visible reflections/refraction, but no milky white pane.
     const glass = new THREE.MeshPhysicalMaterial({
       name: `${sourceMat.name || "GLASS"}__viewer`,
-      color: new THREE.Color(0xe5eaec),
+      color: new THREE.Color(0xf7f9fa),
       metalness: 0,
-      roughness: 0.16,
+      roughness: 0.09,
       transmission: 0.90,
-      thickness: 0.012,
+      thickness: 0.008,
       ior: 1.45,
       transparent: false,
       opacity: 1,
       depthWrite: true,
       depthTest: true,
       side: THREE.DoubleSide,
-      envMapIntensity: 1
+      envMapIntensity: 0.95
     });
 
+    // Keep roughness character if the original glass has one.
     if (sourceMat.roughnessMap) {
       glass.roughnessMap = sourceMat.roughnessMap;
       glass.roughnessMap.colorSpace = THREE.NoColorSpace;
@@ -315,7 +327,10 @@ class ProductViewer {
           ao
         });
       } catch (error) {
-        console.warn(`[TONSTAD] Could not load ${finish} texture set`, error);
+        console.warn(
+          `[TONSTAD] Could not load ${finish} texture set`,
+          error
+        );
       }
     };
 
@@ -361,24 +376,6 @@ class ProductViewer {
     });
   }
 
-  applyHaugaFinish(finish) {
-    if (!this.primaryWoodMaterials.length) return;
-
-    this.primaryWoodMaterials.forEach((mat) => {
-      if (!mat.color) return;
-
-      if (finish === "original") {
-        const original = this.materialOriginals.get(mat);
-        if (original?.color) mat.color.copy(original.color);
-      } else {
-        const tint = this.config.tintFinishes?.[finish];
-        if (tint) mat.color.copy(tint);
-      }
-
-      mat.needsUpdate = true;
-    });
-  }
-
   /* ------------------------------------------------
      EMBEDDED ANIMATIONS ONLY
   ------------------------------------------------ */
@@ -405,11 +402,14 @@ class ProductViewer {
         clip,
         action,
         targetNames: this.getClipTargetNames(clip),
-        properties: this.getClipProperties(clip)
+        properties: this.getClipProperties(clip),
+        isOpen: false,
+        tweenToken: 0
       };
 
       const group = this.classifyClip(item);
       this.clipGroups[group].push(item);
+      this.allClipItems.push(item);
     });
 
     this.mixer.update(0);
@@ -462,7 +462,10 @@ class ProductViewer {
     if (looksLikeDoor) {
       if (
         NAME_PATTERNS.slidingDoor.test(label) ||
-        (item.properties.has("position") && !item.properties.has("quaternion"))
+        (
+          item.properties.has("position") &&
+          !item.properties.has("quaternion")
+        )
       ) {
         return "slidingDoors";
       }
@@ -488,10 +491,12 @@ class ProductViewer {
   setClipItems(items, value) {
     const t = THREE.MathUtils.clamp(value, 0, 1);
 
-    items.forEach(({ clip, action }) => {
-      action.enabled = true;
-      action.paused = true;
-      action.time = clip.duration * t;
+    items.forEach((item) => {
+      item.action.enabled = true;
+      item.action.paused = true;
+      item.action.time = item.clip.duration * t;
+      item.isOpen = t >= 0.5;
+      item.tweenToken += 1;
     });
 
     if (items.length && this.mixer) {
@@ -505,8 +510,10 @@ class ProductViewer {
       return;
     }
 
-    const items = this.clipGroups[type] || [];
-    this.setClipItems(items, value);
+    this.setClipItems(
+      this.clipGroups[type] || [],
+      value
+    );
   }
 
   setAllMotion(value) {
@@ -516,6 +523,223 @@ class ProductViewer {
     this.root.querySelectorAll(".viewer-range").forEach((range) => {
       range.value = String(Math.round(value * 100));
     });
+  }
+
+  /* ------------------------------------------------
+     TOUCH / CLICK ANIMATION
+  ------------------------------------------------ */
+
+  bindTouchInteraction() {
+    this.canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+
+      this.pointerDown = {
+        x: event.clientX,
+        y: event.clientY,
+        time: performance.now(),
+        pointerId: event.pointerId
+      };
+    });
+
+    this.canvas.addEventListener("pointerup", (event) => {
+      if (!this.pointerDown) return;
+
+      const dx = event.clientX - this.pointerDown.x;
+      const dy = event.clientY - this.pointerDown.y;
+      const distance = Math.hypot(dx, dy);
+      const elapsed = performance.now() - this.pointerDown.time;
+
+      this.pointerDown = null;
+
+      // Orbit/drag gesture: do not activate an object.
+      if (distance > 9 || elapsed > 650) return;
+
+      const item = this.findAnimationAtPointer(
+        event.clientX,
+        event.clientY
+      );
+
+      if (!item) return;
+
+      this.controls.autoRotate = false;
+      this.toggleClip(item);
+    });
+  }
+
+  findAnimationAtPointer(clientX, clientY) {
+    if (!this.model || !this.allClipItems.length) return null;
+
+    const rect = this.canvas.getBoundingClientRect();
+
+    this.pointer.x =
+      ((clientX - rect.left) / rect.width) * 2 - 1;
+
+    this.pointer.y =
+      -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(
+      this.pointer,
+      this.camera
+    );
+
+    const hits = this.raycaster.intersectObject(
+      this.model,
+      true
+    );
+
+    for (const hit of hits) {
+      const item = this.findClipForObject(hit.object);
+      if (item) return item;
+    }
+
+    return null;
+  }
+
+  findClipForObject(object) {
+    const ancestors = new Set();
+    let cursor = object;
+
+    while (cursor && cursor !== this.model.parent) {
+      if (cursor.name) ancestors.add(cursor.name);
+      if (cursor === this.model) break;
+      cursor = cursor.parent;
+    }
+
+    // Prefer direct target/ancestor matches.
+    for (const item of this.allClipItems) {
+      if (
+        item.targetNames.some((name) =>
+          ancestors.has(name)
+        )
+      ) {
+        return item;
+      }
+    }
+
+    // Fallback: check whether the clicked mesh is inside
+    // the animated target node.
+    for (const item of this.allClipItems) {
+      for (const targetName of item.targetNames) {
+        const target = this.model.getObjectByName(targetName);
+        if (!target) continue;
+
+        let node = object;
+        while (node) {
+          if (node === target) return item;
+          if (node === this.model) break;
+          node = node.parent;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  toggleClip(item) {
+    const target = item.isOpen ? 0 : 1;
+    this.tweenClip(item, target);
+  }
+
+  tweenClip(item, targetValue) {
+    const duration = Math.max(item.clip.duration, 0.001);
+    const from = THREE.MathUtils.clamp(
+      item.action.time / duration,
+      0,
+      1
+    );
+
+    const to = THREE.MathUtils.clamp(
+      targetValue,
+      0,
+      1
+    );
+
+    const token = ++item.tweenToken;
+    const start = performance.now();
+
+    // Quick enough to feel tactile, slow enough to read.
+    const tweenDuration = 420 * Math.max(
+      Math.abs(to - from),
+      0.28
+    );
+
+    const ease = (t) =>
+      t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const step = (now) => {
+      if (item.tweenToken !== token) return;
+
+      const p = THREE.MathUtils.clamp(
+        (now - start) / tweenDuration,
+        0,
+        1
+      );
+
+      const value = THREE.MathUtils.lerp(
+        from,
+        to,
+        ease(p)
+      );
+
+      item.action.enabled = true;
+      item.action.paused = true;
+      item.action.time = duration * value;
+
+      if (this.mixer) this.mixer.update(0);
+
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else {
+        item.isOpen = to >= 0.5;
+        this.syncGroupSlider(item);
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  syncGroupSlider(item) {
+    let motion = null;
+
+    if (this.clipGroups.drawers.includes(item)) {
+      motion = "drawers";
+    } else if (this.clipGroups.slidingDoors.includes(item)) {
+      motion = "slidingDoors";
+    } else if (this.clipGroups.hingedDoors.includes(item)) {
+      motion = "hingedDoors";
+    } else if (this.clipGroups.genericDoors.includes(item)) {
+      motion = "doors";
+    }
+
+    if (!motion) return;
+
+    const range = this.root.querySelector(
+      `[data-motion="${motion}"]`
+    );
+
+    if (!range) return;
+
+    const group = motion === "doors"
+      ? this.getDoorClips()
+      : this.clipGroups[motion];
+
+    if (!group.length) return;
+
+    const average =
+      group.reduce((sum, clipItem) => {
+        const duration = Math.max(
+          clipItem.clip.duration,
+          0.001
+        );
+
+        return sum + clipItem.action.time / duration;
+      }, 0) / group.length;
+
+    range.value = String(
+      Math.round(average * 100)
+    );
   }
 
   updateMotionUIAvailability() {
@@ -536,14 +760,22 @@ class ProductViewer {
       const group = input.closest(".viewer-control-group");
 
       input.disabled = !available;
-      group?.classList.toggle("is-unavailable", !available);
+      group?.classList.toggle(
+        "is-unavailable",
+        !available
+      );
     });
 
-    const anyMotion = Object.values(availability).some(Boolean);
+    const anyMotion = Object.values(
+      availability
+    ).some(Boolean);
 
     this.root
       .querySelector(".viewer-action-row")
-      ?.classList.toggle("is-unavailable", !anyMotion);
+      ?.classList.toggle(
+        "is-unavailable",
+        !anyMotion
+      );
   }
 
   /* ------------------------------------------------
@@ -564,16 +796,23 @@ class ProductViewer {
 
     const material = new THREE.ShadowMaterial({
       color: 0x000000,
-      opacity: 0.18,
+      opacity: 0.17,
       transparent: true
     });
 
-    const ground = new THREE.Mesh(geometry, material);
+    const ground = new THREE.Mesh(
+      geometry,
+      material
+    );
 
     ground.rotation.x = -Math.PI / 2;
     ground.position.set(
       this.modelCenter.x,
-      this.modelBox.min.y - Math.max(this.modelSize.y * 0.003, 0.001),
+      this.modelBox.min.y -
+        Math.max(
+          this.modelSize.y * 0.003,
+          0.001
+        ),
       this.modelCenter.z
     );
 
@@ -585,27 +824,48 @@ class ProductViewer {
     const sphere = new THREE.Sphere();
     this.modelBox.getBoundingSphere(sphere);
 
-    const radius = Math.max(sphere.radius, 0.01);
+    const radius = Math.max(
+      sphere.radius,
+      0.01
+    );
+
     const direction = this.config.cameraDirection
       .clone()
       .normalize();
 
     const distance =
       radius /
-      Math.sin(THREE.MathUtils.degToRad(this.camera.fov * 0.5)) *
+      Math.sin(
+        THREE.MathUtils.degToRad(
+          this.camera.fov * 0.5
+        )
+      ) *
       1.15;
 
     this.camera.position
       .copy(sphere.center)
-      .addScaledVector(direction, distance);
+      .addScaledVector(
+        direction,
+        distance
+      );
 
-    this.camera.near = Math.max(radius / 120, 0.005);
+    this.camera.near = Math.max(
+      radius / 120,
+      0.005
+    );
+
     this.camera.far = radius * 80;
     this.camera.updateProjectionMatrix();
 
-    this.controls.target.copy(sphere.center);
-    this.controls.minDistance = radius * 0.65;
-    this.controls.maxDistance = radius * 6;
+    this.controls.target.copy(
+      sphere.center
+    );
+
+    this.controls.minDistance =
+      radius * 0.65;
+
+    this.controls.maxDistance =
+      radius * 6;
 
     this.cameraHome = {
       position: this.camera.position.clone(),
@@ -616,8 +876,14 @@ class ProductViewer {
   resetCamera() {
     if (!this.cameraHome) return;
 
-    this.camera.position.copy(this.cameraHome.position);
-    this.controls.target.copy(this.cameraHome.target);
+    this.camera.position.copy(
+      this.cameraHome.position
+    );
+
+    this.controls.target.copy(
+      this.cameraHome.target
+    );
+
     this.controls.autoRotate = true;
     this.controls.update();
   }
@@ -634,7 +900,11 @@ class ProductViewer {
         this.root.querySelectorAll("[data-finish]").forEach((b) => {
           const active = b === button;
 
-          b.classList.toggle("is-active", active);
+          b.classList.toggle(
+            "is-active",
+            active
+          );
+
           b.setAttribute(
             "aria-pressed",
             active ? "true" : "false"
@@ -642,9 +912,9 @@ class ProductViewer {
         });
 
         if (this.id === "tonstad") {
-          await this.applyTonstadFinish(finish);
-        } else {
-          this.applyHaugaFinish(finish);
+          await this.applyTonstadFinish(
+            finish
+          );
         }
       });
     });
@@ -666,9 +936,17 @@ class ProductViewer {
 
         this.controls.autoRotate = false;
 
-        if (action === "open-all") this.setAllMotion(1);
-        if (action === "close-all") this.setAllMotion(0);
-        if (action === "reset-camera") this.resetCamera();
+        if (action === "open-all") {
+          this.setAllMotion(1);
+        }
+
+        if (action === "close-all") {
+          this.setAllMotion(0);
+        }
+
+        if (action === "reset-camera") {
+          this.resetCamera();
+        }
       });
     });
 
@@ -686,7 +964,8 @@ class ProductViewer {
   }
 
   resize() {
-    const rect = this.stage.getBoundingClientRect();
+    const rect =
+      this.stage.getBoundingClientRect();
 
     if (!rect.width || !rect.height) return;
 
@@ -695,29 +974,42 @@ class ProductViewer {
       2
     );
 
-    const width = Math.round(rect.width * pixelRatio);
-    const height = Math.round(rect.height * pixelRatio);
+    const width = Math.round(
+      rect.width * pixelRatio
+    );
+
+    const height = Math.round(
+      rect.height * pixelRatio
+    );
 
     if (
       this.canvas.width !== width ||
       this.canvas.height !== height
     ) {
-      this.renderer.setPixelRatio(pixelRatio);
+      this.renderer.setPixelRatio(
+        pixelRatio
+      );
+
       this.renderer.setSize(
         rect.width,
         rect.height,
         false
       );
 
-      this.camera.aspect = rect.width / rect.height;
+      this.camera.aspect =
+        rect.width / rect.height;
+
       this.camera.updateProjectionMatrix();
     }
   }
 
   animate = () => {
-    requestAnimationFrame(this.animate);
+    requestAnimationFrame(
+      this.animate
+    );
 
     this.controls.update();
+
     this.renderer.render(
       this.scene,
       this.camera
@@ -729,20 +1021,32 @@ class ProductViewer {
   ------------------------------------------------ */
 
   renderDebugPanel(gltf) {
-    const details = document.createElement("details");
+    const details = document.createElement(
+      "details"
+    );
+
     details.className = "viewer-debug";
 
-    const groupText = Object.entries(this.clipGroups)
+    const groupText = Object.entries(
+      this.clipGroups
+    )
       .map(([group, items]) => {
         const names = items.map((item) => {
-          const targets = item.targetNames.length
-            ? ` → ${item.targetNames.join(", ")}`
-            : "";
+          const targets =
+            item.targetNames.length
+              ? ` → ${item.targetNames.join(", ")}`
+              : "";
 
-          return `${item.clip.name || "(unnamed)"}${targets}`;
+          return `${
+            item.clip.name || "(unnamed)"
+          }${targets}`;
         });
 
-        return `${group}\n${names.length ? names.join("\n") : "none"}`;
+        return `${group}\n${
+          names.length
+            ? names.join("\n")
+            : "none"
+        }`;
       })
       .join("\n\n");
 
@@ -753,27 +1057,24 @@ class ProductViewer {
           <strong>Embedded animations</strong>
           <pre>${escapeHtml(
             (gltf.animations || [])
-              .map((clip) => clip.name || "(unnamed)")
+              .map(
+                (clip) =>
+                  clip.name || "(unnamed)"
+              )
               .join("\n") || "none"
           )}</pre>
         </div>
 
         <div>
           <strong>Classification</strong>
-          <pre>${escapeHtml(groupText)}</pre>
+          <pre>${escapeHtml(
+            groupText
+          )}</pre>
         </div>
       </div>
     `;
 
     this.root.appendChild(details);
-
-    console.group(`[Viewer debug] ${this.product}`);
-    console.log(
-      "embedded animations",
-      (gltf.animations || []).map((clip) => clip.name)
-    );
-    console.log("classification", this.clipGroups);
-    console.groupEnd();
   }
 }
 

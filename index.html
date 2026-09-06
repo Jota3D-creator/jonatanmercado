@@ -110,13 +110,43 @@
           </div>
         </header>
 
-        <figure class="media media-hero reveal">
-          <img
-            src="assets/images/product-visualization-lamp-01.jpg"
-            alt="Photoreal product visualization of a table lamp on a wood cabinet"
-            fetchpriority="high"
-            decoding="async"
-          />
+        <figure class="media media-hero reveal compare-media" data-compare>
+          <div class="image-compare" style="--compare-position: 50%;">
+            <img
+              class="image-compare-base"
+              src="assets/images/product-visualization-lamp-clay-01.png"
+              alt="Clay render of the lamp scene"
+              fetchpriority="high"
+              decoding="async"
+            />
+
+            <div class="image-compare-after">
+              <img
+                src="assets/images/product-visualization-lamp-01.jpg"
+                alt="Final photoreal product visualization of the lamp scene"
+                fetchpriority="high"
+                decoding="async"
+              />
+            </div>
+
+            <div class="image-compare-divider" aria-hidden="true">
+              <span class="image-compare-handle">
+                <span>↔</span>
+              </span>
+            </div>
+
+            <div class="image-compare-label image-compare-label-left">Clay</div>
+            <div class="image-compare-label image-compare-label-right">Final</div>
+
+            <input
+              class="image-compare-range"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare clay and final lamp render"
+            />
+          </div>
         </figure>
 
         <div class="product-layout">
@@ -352,7 +382,7 @@
           </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Scroll to zoom · Use controls to configure</span>
+            <span>Drag to orbit · Tap animated parts · Use controls to configure</span>
             <span>TONSTAD</span>
           </div>
         </article>
@@ -382,22 +412,9 @@
             </div>
 
             <div class="viewer-toolbar" aria-label="HAUGA viewer controls">
-              <div class="viewer-control-group viewer-materials">
-                <span class="viewer-control-label">Finish</span>
-                <div class="viewer-swatches" role="group" aria-label="HAUGA finish">
-                  <button type="button" class="viewer-swatch is-active" data-finish="original" aria-pressed="true">
-                    <span class="swatch-color swatch-hauga-original"></span>
-                    <span>Original</span>
-                  </button>
-                  <button type="button" class="viewer-swatch" data-finish="light" aria-pressed="false">
-                    <span class="swatch-color swatch-hauga-light"></span>
-                    <span>Light</span>
-                  </button>
-                  <button type="button" class="viewer-swatch" data-finish="dark" aria-pressed="false">
-                    <span class="swatch-color swatch-hauga-dark"></span>
-                    <span>Dark</span>
-                  </button>
-                </div>
+              <div class="viewer-material-note" aria-label="HAUGA uses original materials">
+                <span>Materials</span>
+                <strong>Original PBR</strong>
               </div>
 
               <div class="viewer-control-group">
@@ -433,7 +450,7 @@
           </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Scroll to zoom · Glass alpha corrected in viewer</span>
+            <span>Drag to orbit · Tap animated parts · Pinch / scroll to zoom</span>
             <span>HAUGA</span>
           </div>
         </article>
@@ -743,5 +760,6 @@
   <script src="script.js"></script>
   <script type="module" src="viewer.js"></script>
   <script src="gallery.js"></script>
+  <script src="compare.js"></script>
 </body>
 </html>
