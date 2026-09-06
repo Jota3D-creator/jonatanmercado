@@ -10,9 +10,14 @@
   <link rel="icon" href="assets/logos/logo-mark-black.png" type="image/png" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Lightweight GLB viewer for the Interactive section.
-       Later we can replace this block with your full Three.js viewer. -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 
 <body class="compact-v3">
@@ -273,95 +278,190 @@
         </div>
 
         <p class="section-intro">
-          Real GLB assets rendered directly in the browser — designed for product inspection,
-          configuration and scalable web delivery.
+          Real GLB assets rendered directly in the browser — with material variants,
+          doors and drawers controlled in real time.
         </p>
       </div>
 
       <div class="viewer-grid">
 
-        <article class="viewer-card reveal">
+        <article
+          class="viewer-card reveal js-product-viewer"
+          data-viewer-id="tonstad"
+          data-model="assets/models/Tonstad/Model_Tonstad_FINAL.glb"
+          data-product="TONSTAD"
+          aria-label="Interactive TONSTAD product viewer">
+
           <div class="viewer-card-head">
             <div>
               <p class="viewer-index">PRODUCT / 01</p>
               <h3>TONSTAD</h3>
             </div>
-            <span>GLB · INTERACTIVE</span>
+            <span>THREE.JS · GLB</span>
           </div>
 
-          <model-viewer
-            src="assets/models/Tonstad/Model_Tonstad_FINAL.glb"
-            camera-controls
-            auto-rotate
-            rotation-per-second="12deg"
-            shadow-intensity="1"
-            shadow-softness="0.8"
-            exposure="1"
-            environment-image="neutral"
-            interaction-prompt="auto"
-            alt="Interactive 3D model of TONSTAD furniture">
-          </model-viewer>
+          <div class="viewer-stage">
+            <canvas class="viewer-canvas" aria-label="Interactive 3D model of TONSTAD furniture"></canvas>
+
+            <div class="viewer-loading" aria-live="polite">
+              <span class="viewer-loading-dot"></span>
+              <span>Loading model</span>
+            </div>
+
+            <div class="viewer-toolbar" aria-label="TONSTAD viewer controls">
+              <div class="viewer-control-group viewer-materials">
+                <span class="viewer-control-label">Material</span>
+                <div class="viewer-swatches" role="group" aria-label="TONSTAD material">
+                  <button type="button" class="viewer-swatch is-active" data-finish="wood" aria-pressed="true">
+                    <span class="swatch-color swatch-wood"></span>
+                    <span>Wood</span>
+                  </button>
+                  <button type="button" class="viewer-swatch" data-finish="white" aria-pressed="false">
+                    <span class="swatch-color swatch-white"></span>
+                    <span>White</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="viewer-control-group">
+                <label class="viewer-range-label">
+                  <span>Doors</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="doors" />
+                </label>
+              </div>
+
+              <div class="viewer-control-group">
+                <label class="viewer-range-label">
+                  <span>Drawers</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="drawers" />
+                </label>
+              </div>
+
+              <div class="viewer-action-row">
+                <button type="button" class="viewer-action" data-action="close-all">Close all</button>
+                <button type="button" class="viewer-action viewer-action-primary" data-action="open-all">Open all</button>
+              </div>
+            </div>
+
+            <button type="button" class="viewer-reset" data-action="reset-camera" aria-label="Reset TONSTAD camera">
+              Reset view
+            </button>
+          </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Scroll to zoom</span>
+            <span>Drag to orbit · Scroll to zoom · Use controls to configure</span>
             <span>TONSTAD</span>
           </div>
         </article>
 
 
-        <article class="viewer-card reveal">
+        <article
+          class="viewer-card reveal js-product-viewer"
+          data-viewer-id="hauga"
+          data-model="assets/models/Hauga/Almacenamiento_Hauga_v2.glb"
+          data-product="HAUGA"
+          aria-label="Interactive HAUGA product viewer">
+
           <div class="viewer-card-head">
             <div>
               <p class="viewer-index">PRODUCT / 02</p>
               <h3>HAUGA</h3>
             </div>
-            <span>GLB · INTERACTIVE</span>
+            <span>THREE.JS · GLB</span>
           </div>
 
-          <model-viewer
-            src="assets/models/Hauga/Almacenamiento_Hauga_v2.glb"
-            camera-controls
-            auto-rotate
-            rotation-per-second="12deg"
-            shadow-intensity="1"
-            shadow-softness="0.8"
-            exposure="1"
-            environment-image="neutral"
-            interaction-prompt="auto"
-            alt="Interactive 3D model of HAUGA furniture">
-          </model-viewer>
+          <div class="viewer-stage">
+            <canvas class="viewer-canvas" aria-label="Interactive 3D model of HAUGA furniture"></canvas>
+
+            <div class="viewer-loading" aria-live="polite">
+              <span class="viewer-loading-dot"></span>
+              <span>Loading model</span>
+            </div>
+
+            <div class="viewer-toolbar" aria-label="HAUGA viewer controls">
+              <div class="viewer-control-group viewer-materials">
+                <span class="viewer-control-label">Finish</span>
+                <div class="viewer-swatches" role="group" aria-label="HAUGA finish">
+                  <button type="button" class="viewer-swatch is-active" data-finish="original" aria-pressed="true">
+                    <span class="swatch-color swatch-hauga-original"></span>
+                    <span>Original</span>
+                  </button>
+                  <button type="button" class="viewer-swatch" data-finish="light" aria-pressed="false">
+                    <span class="swatch-color swatch-hauga-light"></span>
+                    <span>Light</span>
+                  </button>
+                  <button type="button" class="viewer-swatch" data-finish="dark" aria-pressed="false">
+                    <span class="swatch-color swatch-hauga-dark"></span>
+                    <span>Dark</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="viewer-control-group">
+                <label class="viewer-range-label">
+                  <span>Doors</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="doors" />
+                </label>
+              </div>
+
+              <div class="viewer-control-group">
+                <label class="viewer-range-label">
+                  <span>Drawers</span>
+                  <input class="viewer-range" type="range" min="0" max="100" value="0" data-motion="drawers" />
+                </label>
+              </div>
+
+              <div class="viewer-action-row">
+                <button type="button" class="viewer-action" data-action="close-all">Close all</button>
+                <button type="button" class="viewer-action viewer-action-primary" data-action="open-all">Open all</button>
+              </div>
+            </div>
+
+            <button type="button" class="viewer-reset" data-action="reset-camera" aria-label="Reset HAUGA camera">
+              Reset view
+            </button>
+          </div>
 
           <div class="viewer-card-foot">
-            <span>Drag to orbit · Scroll to zoom</span>
+            <span>Drag to orbit · Scroll to zoom · Glass alpha corrected in viewer</span>
             <span>HAUGA</span>
           </div>
         </article>
 
       </div>
 
+      <div class="viewer-note reveal">
+        <span>Viewer note</span>
+        <p>
+          TONSTAD uses the uploaded WOOD / WHITE PBR texture sets.
+          HAUGA keeps its original wood texture and exposes non-destructive finish tints.
+          Transparent glass is corrected at runtime for stable depth sorting.
+        </p>
+      </div>
+
       <div class="feature-grid reveal">
         <div class="feature">
           <span>01</span>
-          <h3>Optimized assets</h3>
-          <p>GLTF / GLB workflows designed with browser delivery in mind.</p>
+          <h3>Material variants</h3>
+          <p>Real-time finish changes using the product's PBR material structure.</p>
         </div>
 
         <div class="feature">
           <span>02</span>
           <h3>Object interaction</h3>
-          <p>Doors, drawers, product states and custom behaviors in the production viewer.</p>
+          <p>Doors and drawers can be inspected open, closed or anywhere in between.</p>
         </div>
 
         <div class="feature">
           <span>03</span>
-          <h3>Material logic</h3>
-          <p>Consistent material handling across reusable product families and variants.</p>
+          <h3>Glass handling</h3>
+          <p>Transparent materials are patched for stable alpha and depth behavior.</p>
         </div>
 
         <div class="feature">
           <span>04</span>
           <h3>Production scale</h3>
-          <p>Built as part of a repeatable asset pipeline, not as a one-off presentation.</p>
+          <p>Built around reusable GLB assets rather than one-off presentation scenes.</p>
         </div>
       </div>
 
@@ -500,5 +600,6 @@
   </main>
 
   <script src="script.js"></script>
+  <script type="module" src="viewer.js"></script>
 </body>
 </html>

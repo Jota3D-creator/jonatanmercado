@@ -1449,3 +1449,364 @@ model-viewer{
     min-height:68svh;
   }
 }
+
+
+/* ==================================================
+   V4 — THREE.JS PRODUCT VIEWER
+================================================== */
+
+/* model-viewer was replaced by a custom Three.js canvas */
+.viewer-stage{
+  position:relative;
+  aspect-ratio:1 / 1;
+  min-height:520px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 43%,#2a2b2f 0,#17181b 45%,#0b0c0e 82%);
+  touch-action:pan-y;
+}
+
+.viewer-canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  outline:none;
+}
+
+.viewer-loading{
+  position:absolute;
+  inset:0;
+  z-index:4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  pointer-events:none;
+  color:#9b9ca0;
+  background:rgba(11,12,14,.55);
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  transition:opacity .3s ease, visibility .3s ease;
+}
+
+.viewer-loading.is-hidden{
+  opacity:0;
+  visibility:hidden;
+}
+
+.viewer-loading.is-error{
+  color:#d6aaa4;
+}
+
+.viewer-loading-dot{
+  width:7px;
+  height:7px;
+  border:1px solid currentColor;
+  border-radius:50%;
+  animation:viewerPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes viewerPulse{
+  from{opacity:.25;transform:scale(.8)}
+  to{opacity:1;transform:scale(1)}
+}
+
+.viewer-toolbar{
+  position:absolute;
+  z-index:3;
+  left:14px;
+  right:14px;
+  bottom:14px;
+  display:grid;
+  grid-template-columns:1.15fr .9fr .9fr auto;
+  gap:10px;
+  align-items:end;
+  padding:12px;
+  background:rgba(12,13,15,.82);
+  border:1px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+
+.viewer-control-group{
+  min-width:0;
+}
+
+.viewer-control-group.is-disabled{
+  opacity:.34;
+}
+
+.viewer-control-label,
+.viewer-range-label>span{
+  display:block;
+  margin-bottom:8px;
+  color:#8b8c90;
+  font-size:8px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.viewer-swatches{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.viewer-swatch,
+.viewer-action,
+.viewer-reset{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.035);
+  color:#d6d6d3;
+  cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+
+.viewer-swatch{
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:0 9px;
+  font-size:9px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+
+.viewer-swatch:hover,
+.viewer-swatch.is-active,
+.viewer-action:hover,
+.viewer-reset:hover{
+  border-color:rgba(255,255,255,.45);
+  background:rgba(255,255,255,.095);
+  color:#fff;
+}
+
+.viewer-swatch.is-active{
+  border-color:rgba(255,255,255,.7);
+}
+
+.swatch-color{
+  width:13px;
+  height:13px;
+  display:block;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+}
+
+.swatch-wood{
+  background:linear-gradient(135deg,#b69b77,#5d4d3c);
+}
+
+.swatch-white{
+  background:#e7e4dc;
+}
+
+.swatch-hauga-original{
+  background:#c3aa89;
+}
+
+.swatch-hauga-light{
+  background:#e9e2d6;
+}
+
+.swatch-hauga-dark{
+  background:#5e554c;
+}
+
+.viewer-range-label{
+  display:block;
+}
+
+.viewer-range{
+  width:100%;
+  min-width:95px;
+  height:20px;
+  margin:0;
+  accent-color:#f4f3ef;
+  cursor:pointer;
+}
+
+.viewer-range:disabled{
+  cursor:not-allowed;
+}
+
+.viewer-action-row{
+  display:flex;
+  gap:6px;
+}
+
+.viewer-action{
+  min-height:36px;
+  padding:0 10px;
+  font-size:8px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.viewer-action-primary{
+  background:#f2f1ec;
+  border-color:#f2f1ec;
+  color:#111;
+}
+
+.viewer-action-primary:hover{
+  background:#fff;
+  color:#111;
+}
+
+.viewer-reset{
+  position:absolute;
+  z-index:3;
+  top:14px;
+  right:14px;
+  min-height:34px;
+  padding:0 10px;
+  font-size:8px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  background:rgba(12,13,15,.66);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+.viewer-note{
+  display:grid;
+  grid-template-columns:120px minmax(0,680px);
+  gap:25px;
+  align-items:start;
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid var(--line-dark);
+  color:#85868a;
+}
+
+.viewer-note>span{
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.viewer-note p{
+  margin:0;
+  font-size:11px;
+  line-height:1.55;
+}
+
+.viewer-debug{
+  margin-top:10px;
+  border:1px solid var(--line-dark);
+  background:#08090a;
+  color:#b9b9b6;
+}
+
+.viewer-debug summary{
+  cursor:pointer;
+  padding:12px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.viewer-debug-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--line-dark);
+}
+
+.viewer-debug-grid>div{
+  min-width:0;
+  padding:12px;
+  background:#0d0e10;
+}
+
+.viewer-debug strong{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.viewer-debug pre{
+  max-height:280px;
+  overflow:auto;
+  margin:10px 0 0;
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:#8e8f93;
+  font:10px/1.45 Consolas,monospace;
+}
+
+/* The old model-viewer rules are harmless but no longer used. */
+.viewer-card.viewer-needs-motion-map .viewer-action-row{
+  opacity:.72;
+}
+
+@media(max-width:1180px){
+  .viewer-toolbar{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .viewer-action-row{
+    justify-content:flex-end;
+  }
+}
+
+@media(max-width:900px){
+  .viewer-stage{
+    min-height:500px;
+  }
+}
+
+@media(max-width:600px){
+  .viewer-stage{
+    aspect-ratio:.78 / 1;
+    min-height:520px;
+  }
+
+  .viewer-toolbar{
+    left:10px;
+    right:10px;
+    bottom:10px;
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:10px;
+  }
+
+  .viewer-materials{
+    order:0;
+  }
+
+  .viewer-action-row{
+    justify-content:stretch;
+  }
+
+  .viewer-action{
+    flex:1;
+  }
+
+  .viewer-reset{
+    top:10px;
+    right:10px;
+  }
+
+  .viewer-note{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .viewer-debug-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .viewer-loading-dot{
+    animation:none;
+  }
+}
