@@ -17,7 +17,9 @@
       const availableZoom = img.naturalWidth / rect.width;
       if (availableZoom < 1.18) return;
 
-      const zoom = Math.min(2.6, availableZoom);
+      // V6.8: up to 50% more true-detail magnification than before.
+      // Never exceed the actual source-image resolution.
+      const zoom = Math.min(3.9, availableZoom);
 
       figure.classList.add("has-detail-lens");
 
@@ -32,7 +34,7 @@
         const x = Math.max(0, Math.min(imageRect.width, event.clientX - imageRect.left));
         const y = Math.max(0, Math.min(imageRect.height, event.clientY - imageRect.top));
 
-        const lensSize = lens.offsetWidth || 168;
+        const lensSize = lens.offsetWidth || 352;
         const half = lensSize / 2;
 
         lens.style.left = `${x}px`;

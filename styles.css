@@ -3280,3 +3280,48 @@ html.lightbox-open body{
     gap:8px;
   }
 }
+
+
+/* ==================================================
+   V6.8 — DRAWER RANGE / RMB PAN / LARGE DETAIL LENS
+================================================== */
+
+/* Right mouse drag is reserved for OrbitControls pan. */
+.viewer-canvas{
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+/* 100% larger than the previous 176px detail lens. */
+.detail-lens{
+  width:352px;
+  height:352px;
+  border-width:1px;
+  box-shadow:
+    0 24px 58px rgba(0,0,0,.18),
+    inset 0 0 0 1px rgba(0,0,0,.10);
+}
+
+.detail-lens::after{
+  inset:14px;
+}
+
+.detail-lens-ratio{
+  right:20px;
+  bottom:18px;
+  padding:5px 7px;
+  font-size:9px;
+}
+
+@media(max-width:1200px){
+  .detail-lens{
+    width:300px;
+    height:300px;
+  }
+}
+
+@media(max-width:900px){
+  .detail-lens{
+    display:none!important;
+  }
+}

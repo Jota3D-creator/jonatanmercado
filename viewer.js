@@ -31,9 +31,9 @@ const PRODUCT_CONFIG = {
     // They are named as animation nodes in Blender but the supplied GLB does not
     // serialize AnimationClips for them, so we map only these exact nodes.
     exactDrawerNodes: {
-      "anim_Cajon 1": { axis: "z", distance: 0.22, sign: 1 },
-      "anim_Cajon 2": { axis: "z", distance: 0.22, sign: 1 },
-      "anim_Cajon 3": { axis: "z", distance: 0.22, sign: 1 }
+      "anim_Cajon 1": { axis: "z", distance: 0.11, sign: 1 },
+      "anim_Cajon 2": { axis: "z", distance: 0.11, sign: 1 },
+      "anim_Cajon 3": { axis: "z", distance: 0.11, sign: 1 }
     },
 
     // Exact glTF WHITE material baseColorFactor found in the uploaded HAUGA file.
@@ -92,7 +92,12 @@ class ProductViewer {
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.07;
-    this.controls.enablePan = false;
+    this.controls.enablePan = true;
+    this.controls.mouseButtons = {
+      LEFT: THREE.MOUSE.ROTATE,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: THREE.MOUSE.PAN
+    };
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.38;
     this.controls.minPolarAngle = Math.PI * 0.12;
@@ -592,6 +597,31 @@ class ProductViewer {
     this.clipGroups.other = stillOther;
   }
 
+  normalizeNodeName(name) {
+    return String(name || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  findObjectByLooseName(name) {
+    if (!this.model) return null;
+
+    const target = this.normalizeNodeName(name);
+    let found = null;
+
+    this.model.traverse((obj) => {
+      if (found || !obj.name) return;
+
+      if (this.normalizeNodeName(obj.name) === target) {
+        found = obj;
+      }
+    });
+
+    return found;
+  }
+
   setupNamedDrawerFallbacks() {
     if (!this.model) return;
 
@@ -605,9 +635,18 @@ class ProductViewer {
     // This avoids guessing the axis or distance from camera orientation.
     if (exact) {
       Object.entries(exact).forEach(([name, motion]) => {
-        const obj = this.model.getObjectByName(name);
+        // GLTFLoader sanitizes Blender node names, so `anim_Cajon 1`
+        // may arrive as `anim_Cajon_1`. Match the normalized name.
+        const obj =
+          this.model.getObjectByName(name) ||
+          this.findObjectByLooseName(name);
 
-        if (!obj) return;
+        if (!obj) {
+          if (DEBUG) {
+            console.warn(`[${this.product}] drawer node not found:`, name);
+          }
+          return;
+        }
         if (animatedTargets.has(name)) return;
 
         this.drawerFallbackNodes.push({
@@ -645,8 +684,8 @@ class ProductViewer {
       if (!Number.isFinite(size[axis]) || size[axis] <= 0) return;
 
       const distance = Math.min(
-        size[axis] * 0.52,
-        this.modelSize[axis] * 0.48
+        size[axis] * 0.26,
+        this.modelSize[axis] * 0.24
       );
 
       this.drawerFallbackNodes.push({
@@ -768,19 +807,30 @@ class ProductViewer {
       return;
     }
 
+    if (type === "drawers") {
+      // Drawer clips are deliberately capped at 50% of their authored range.
+      // The UI still runs from 0–100%, but 100% means half of the original opening.
+      this.setClipItems(
+        this.clipGroups.drawers || [],
+        THREE.MathUtils.clamp(value, 0, 1) * 0.5
+      );
+
+      this.setDrawerFallback(value);
+      return;
+    }
+
     this.setClipItems(
       this.clipGroups[type] || [],
       value
     );
-
-    if (type === "drawers") {
-      this.setDrawerFallback(value);
-    }
   }
 
   setAllMotion(value) {
     this.setClipItems(this.getDoorClips(), value);
-    this.setClipItems(this.clipGroups.drawers, value);
+    this.setClipItems(
+      this.clipGroups.drawers,
+      THREE.MathUtils.clamp(value, 0, 1) * 0.5
+    );
     this.setDrawerFallback(value);
 
     this.root.querySelectorAll(".viewer-range").forEach((range) => {
@@ -793,6 +843,10 @@ class ProductViewer {
   ------------------------------------------------ */
 
   bindPointerInteraction() {
+    this.canvas.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
+
     this.canvas.addEventListener("pointerdown", (event) => {
       if (event.button !== undefined && event.button !== 0) return;
 
@@ -922,7 +976,10 @@ class ProductViewer {
   }
 
   toggleClip(item) {
-    const target = item.isOpen ? 0 : 1;
+    const isDrawer = this.clipGroups.drawers.includes(item);
+    const openTarget = isDrawer ? 0.5 : 1;
+    const target = item.isOpen ? 0 : openTarget;
+
     this.tweenClip(item, target);
   }
 
@@ -978,7 +1035,8 @@ class ProductViewer {
       if (p < 1) {
         requestAnimationFrame(step);
       } else {
-        item.isOpen = to >= 0.5;
+        const isDrawer = this.clipGroups.drawers.includes(item);
+        item.isOpen = isDrawer ? to >= 0.25 : to >= 0.5;
         this.syncGroupSlider(item);
       }
     };
@@ -1116,7 +1174,14 @@ class ProductViewer {
           0.001
         );
 
-        return sum + clipItem.action.time / duration;
+        const raw = clipItem.action.time / duration;
+
+        // Drawer clips use only the first half of their authored range.
+        return sum + (
+          motion === "drawers"
+            ? Math.min(raw / 0.5, 1)
+            : raw
+        );
       }, 0) / group.length;
 
     range.value = String(
