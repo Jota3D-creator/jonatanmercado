@@ -1,0 +1,48 @@
+JONATAN MERCADO — PORTFOLIO V6.9
+=================================
+
+CUSTOM DOMAIN
+jonatanmercado.com
+
+PUBLIC EMAIL
+hello@jonatanmercado.com
+(forwards to mercado_jonatan@hotmail.com via your DNS/ImprovMX setup)
+
+UPLOAD / REPLACE IN REPOSITORY ROOT
+- index.html
+- styles.css
+- script.js
+- viewer.js
+- gallery.js
+- compare.js
+- magnifier.js
+- CNAME
+
+RELEASE-SPECIFIC ASSET
+- assets/images/product-visualization-lamp-clay-01.png
+
+KEEP YOUR EXISTING REPOSITORY ASSETS
+Do not delete your existing assets/images, assets/logos or assets/models folders.
+This package only contains the release-specific asset that was generated during the site build.
+
+CURRENT EXPECTED EXISTING ASSETS INCLUDE
+- assets/images/product-visualization-lamp-01.jpg
+- assets/images/product-visualization-chair-01.jpg
+- assets/images/product-visualization-faucet-01.png
+- assets/images/product-visualization-interior-01.jpg
+- assets/images/hard-surface-robot-01.jpg
+- assets/images/hard-surface-robot-detail-01.jpg
+- assets/images/hard-surface-robot-detail-02.jpg
+- assets/images/archviz-interior-01.png
+- assets/logos/logo-mark-black.png
+- assets/logos/logo-mark-white.png
+- assets/models/Tonstad/Model_Tonstad_FINAL.glb
+- assets/models/Hauga/Almacenamiento_Hauga.glb
+
+GET IN TOUCH
+The Get in touch button now opens:
+mailto:hello@jonatanmercado.com?subject=Project%20inquiry
+
+GITHUB PAGES
+The CNAME file contains:
+jonatanmercado.com
