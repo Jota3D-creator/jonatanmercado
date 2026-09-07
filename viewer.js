@@ -70,6 +70,7 @@ class ProductViewer {
     this.canvas = root.querySelector(".viewer-canvas");
     this.loadingEl = root.querySelector(".viewer-loading");
     this.stage = root.querySelector(".viewer-stage");
+    this.viewport = root.querySelector(".viewer-viewport") || this.stage;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(34, 1, 0.01, 1000);
@@ -165,7 +166,7 @@ class ProductViewer {
     this.visibilityObserver.observe(this.root);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
-    this.resizeObserver.observe(this.stage);
+    this.resizeObserver.observe(this.viewport);
 
     this.bindUI();
     this.bindPointerInteraction();
@@ -1445,7 +1446,7 @@ class ProductViewer {
 
   resize() {
     const rect =
-      this.stage.getBoundingClientRect();
+      this.viewport.getBoundingClientRect();
 
     if (!rect.width || !rect.height) return;
 
@@ -1453,33 +1454,20 @@ class ProductViewer {
       ? Math.min(window.devicePixelRatio || 1, 1.15)
       : Math.min(window.devicePixelRatio || 1, 2);
 
-    const width = Math.round(
-      rect.width * pixelRatio
+    this.renderer.setPixelRatio(
+      pixelRatio
     );
 
-    const height = Math.round(
-      rect.height * pixelRatio
+    this.renderer.setSize(
+      rect.width,
+      rect.height,
+      false
     );
 
-    if (
-      this.canvas.width !== width ||
-      this.canvas.height !== height
-    ) {
-      this.renderer.setPixelRatio(
-        pixelRatio
-      );
+    this.camera.aspect =
+      rect.width / rect.height;
 
-      this.renderer.setSize(
-        rect.width,
-        rect.height,
-        false
-      );
-
-      this.camera.aspect =
-        rect.width / rect.height;
-
-      this.camera.updateProjectionMatrix();
-    }
+    this.camera.updateProjectionMatrix();
   }
 
   animate = () => {

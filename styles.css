@@ -4087,3 +4087,96 @@ html.lightbox-open body{
     font-size:13px;
   }
 }
+
+/* ==================================================
+   V6.16 — MOBILE VIEWER / ABOUT / CONCRETE INSERT
+================================================== */
+
+@media(max-width:700px){
+  .site-header{
+    position:absolute;
+    padding:14px 18px;
+    mix-blend-mode:normal;
+    color:var(--ink);
+  }
+
+  .site-header .brand-mark{
+    filter:invert(1);
+  }
+
+  .hero-copy{
+    font-size:15px;
+    line-height:1.42;
+    max-width:26ch;
+  }
+
+  .about-heading{
+    display:grid;
+    grid-template-columns:64px minmax(0,1fr);
+    grid-template-areas:
+      "eyebrow eyebrow"
+      "mark name";
+    column-gap:16px;
+    align-items:center;
+  }
+
+  .about-mark{
+    width:64px;
+    margin:0;
+    align-self:center;
+  }
+
+  .about-heading h2{
+    margin:0;
+    font-size:clamp(44px,12vw,58px);
+    line-height:.88;
+    letter-spacing:-.055em;
+    transform:translateY(-1px);
+  }
+
+  .about-copy > p{
+    font-size:clamp(17px,4.9vw,22px);
+    line-height:1.24;
+    margin-bottom:18px;
+  }
+
+  .about-copy > p + p{
+    font-size:clamp(16px,4.5vw,20px);
+    line-height:1.28;
+    color:var(--muted);
+  }
+
+  .viewer-stage{
+    overflow:hidden;
+  }
+
+  .viewer-viewport{
+    height:68vw;
+    min-height:290px;
+    max-height:400px;
+  }
+}
+
+@media(max-width:390px){
+  .about-heading{
+    grid-template-columns:54px minmax(0,1fr);
+    column-gap:13px;
+  }
+
+  .about-mark{
+    width:54px;
+  }
+
+  .about-heading h2{
+    font-size:44px;
+  }
+
+  .hero-copy{
+    font-size:14px;
+  }
+
+  .viewer-viewport{
+    height:74vw;
+    min-height:286px;
+  }
+}
