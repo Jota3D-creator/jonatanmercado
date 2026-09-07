@@ -85,3 +85,42 @@
     height:200px;
   }
 }
+
+/* ==================================================
+   V6.19 — TAP-TO-ACTIVATE MOBILE MAGNIFIER
+================================================== */
+
+@media(max-width:900px), (pointer:coarse){
+  .has-detail-lens,
+  .has-detail-lens > img{
+    -webkit-touch-callout:none!important;
+    -webkit-user-select:none!important;
+    user-select:none!important;
+  }
+
+  .has-detail-lens > img{
+    -webkit-user-drag:none;
+  }
+
+  /* Page scrolling remains normal until the loupe is explicitly activated. */
+  .has-detail-lens{
+    touch-action:pan-y pinch-zoom;
+  }
+
+  /* Once active, finger movement controls the loupe instead of the page. */
+  .has-detail-lens.is-touch-loupe-active{
+    touch-action:none;
+  }
+
+  .detail-lens{
+    width:220px;
+    height:220px;
+  }
+}
+
+@media(max-width:420px){
+  .detail-lens{
+    width:196px;
+    height:196px;
+  }
+}

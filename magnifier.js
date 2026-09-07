@@ -10,18 +10,41 @@
       !figure.closest("[data-compare]")
   );
 
+  let activeTouchFigure = null;
+
+  const hideActiveTouchLens = () => {
+    if (!activeTouchFigure) return;
+    activeTouchFigure.__hideTouchLens?.();
+    activeTouchFigure = null;
+  };
+
   figures.forEach((figure) => {
     const img = figure.querySelector(":scope > img");
     if (!img) return;
 
     let lens = null;
     let zoom = 2.4;
-    let holdTimer = null;
-    let touchActive = false;
+    let touchPinned = false;
+    let touchMoved = false;
     let startX = 0;
     let startY = 0;
-    let lastTouch = null;
-    let suppressClick = false;
+    let lastX = 0;
+    let lastY = 0;
+    let suppressNextClick = false;
+
+    // Stop iOS/Android image callouts and context menus on these portfolio images.
+    img.draggable = false;
+    img.setAttribute("draggable", "false");
+
+    figure.addEventListener("contextmenu", (event) => {
+      if (!isTouchDevice) return;
+      event.preventDefault();
+    });
+
+    img.addEventListener("contextmenu", (event) => {
+      if (!isTouchDevice) return;
+      event.preventDefault();
+    });
 
     const buildLens = () => {
       if (lens) return;
@@ -35,8 +58,6 @@
       const availableZoomY = img.naturalHeight / rect.height;
       const availableZoom = Math.min(availableZoomX, availableZoomY);
 
-      // Always enable on touch. If the source has limited native resolution,
-      // keep the zoom conservative rather than disabling the interaction.
       zoom = isTouchDevice
         ? Math.max(1.6, Math.min(2.8, availableZoom || 2.2))
         : Math.max(1.6, Math.min(3.9, availableZoom || 2.6));
@@ -69,16 +90,14 @@
       const lensSize = lens.offsetWidth || (isTouchDevice ? 220 : 352);
       const half = lensSize / 2;
 
-      // Position relative to the figure, not the page.
       let left = clientX - figureRect.left;
       let top = clientY - figureRect.top;
 
       if (isTouchDevice) {
-        // Lift the lens above the finger, like a text-selection loupe.
-        top -= Math.min(105, lensSize * 0.42);
+        // Lift the loupe above the fingertip so the inspected area stays visible.
+        top -= Math.min(92, lensSize * 0.40);
       }
 
-      // Keep the lens inside the image so it never gets clipped away.
       left = Math.max(half + 6, Math.min(figureRect.width - half - 6, left));
       top = Math.max(half + 6, Math.min(figureRect.height - half - 6, top));
 
@@ -93,86 +112,105 @@
       buildLens();
       if (!lens) return;
       lens.classList.add("is-visible");
+      figure.classList.add("is-touch-loupe-active");
       updateLens(clientX, clientY);
     };
 
     const hideLens = () => {
-      if (holdTimer) {
-        clearTimeout(holdTimer);
-        holdTimer = null;
-      }
-      touchActive = false;
-      lastTouch = null;
+      touchPinned = false;
+      figure.classList.remove("is-touch-loupe-active");
       lens?.classList.remove("is-visible");
     };
 
+    figure.__hideTouchLens = hideLens;
+
     if (isTouchDevice) {
-      // Use native touch events on phones/iOS. Pointer Events can be cancelled
-      // by Safari while the page is deciding whether the gesture is a scroll.
+      // Mobile interaction:
+      // 1) Tap once to activate the loupe.
+      // 2) Drag to inspect while it is active.
+      // 3) Tap again (or tap elsewhere) to close it.
+      // No long-press is used, avoiding the native iOS/Android context menu.
       figure.addEventListener(
         "touchstart",
         (event) => {
           if (event.touches.length !== 1) return;
 
           const touch = event.touches[0];
-          startX = touch.clientX;
-          startY = touch.clientY;
-          lastTouch = touch;
-          suppressClick = false;
+          startX = lastX = touch.clientX;
+          startY = lastY = touch.clientY;
+          touchMoved = false;
 
-          if (holdTimer) clearTimeout(holdTimer);
-
-          // Short hold lets a normal swipe still scroll the page.
-          holdTimer = window.setTimeout(() => {
-            touchActive = true;
-            suppressClick = true;
-            showLens(touch.clientX, touch.clientY);
-          }, 170);
+          if (touchPinned) {
+            // Once the loupe is active, this gesture belongs to the loupe.
+            event.preventDefault();
+            updateLens(touch.clientX, touch.clientY);
+          }
         },
-        { passive: true }
+        { passive: false }
       );
 
       figure.addEventListener(
         "touchmove",
         (event) => {
-          if (event.touches.length !== 1) {
-            hideLens();
-            return;
-          }
+          if (event.touches.length !== 1) return;
 
           const touch = event.touches[0];
-          lastTouch = touch;
+          lastX = touch.clientX;
+          lastY = touch.clientY;
 
-          if (!touchActive) {
-            const dx = touch.clientX - startX;
-            const dy = touch.clientY - startY;
+          const distance = Math.hypot(lastX - startX, lastY - startY);
+          if (distance > 9) touchMoved = true;
 
-            // User is scrolling: cancel the long-press activation.
-            if (Math.hypot(dx, dy) > 12 && holdTimer) {
-              clearTimeout(holdTimer);
-              holdTimer = null;
-            }
+          if (!touchPinned) {
+            // Normal swipe: allow the page to scroll.
             return;
           }
 
-          // Once the loupe is active, drag controls the loupe instead of scroll.
           event.preventDefault();
           updateLens(touch.clientX, touch.clientY);
         },
         { passive: false }
       );
 
-      figure.addEventListener("touchend", hideLens, { passive: true });
-      figure.addEventListener("touchcancel", hideLens, { passive: true });
+      figure.addEventListener(
+        "touchend",
+        (event) => {
+          if (!touchPinned) {
+            // A clean tap activates the loupe. A swipe remains normal page scroll.
+            if (!touchMoved) {
+              hideActiveTouchLens();
+              touchPinned = true;
+              activeTouchFigure = figure;
+              suppressNextClick = true;
+              showLens(startX, startY);
+            }
+            return;
+          }
 
-      // Prevent the gallery/lightbox click that can fire after a long press.
+          // If already active: a tap closes it; a drag leaves it visible.
+          if (!touchMoved) {
+            suppressNextClick = true;
+            hideLens();
+            if (activeTouchFigure === figure) activeTouchFigure = null;
+          } else {
+            updateLens(lastX, lastY);
+          }
+        },
+        { passive: true }
+      );
+
+      figure.addEventListener("touchcancel", () => {
+        touchMoved = false;
+      }, { passive: true });
+
+      // Prevent the gallery/lightbox click generated after a loupe tap.
       figure.addEventListener(
         "click",
         (event) => {
-          if (!suppressClick) return;
+          if (!suppressNextClick) return;
           event.preventDefault();
           event.stopImmediatePropagation();
-          suppressClick = false;
+          suppressNextClick = false;
         },
         true
       );
@@ -192,4 +230,16 @@
     if (img.complete) buildLens();
     else img.addEventListener("load", buildLens, { once: true });
   });
+
+  if (isTouchDevice) {
+    document.addEventListener(
+      "touchstart",
+      (event) => {
+        if (!activeTouchFigure) return;
+        if (activeTouchFigure.contains(event.target)) return;
+        hideActiveTouchLens();
+      },
+      { passive: true, capture: true }
+    );
+  }
 })();

@@ -1,16 +1,11 @@
-Jonatan Mercado portfolio — V6.17
+Jonatan Mercado portfolio — V6.19
 
-Changes in this pass:
-- Added touch magnifier on mobile/tablet: press and drag over portfolio stills.
-- Mobile lens appears above the finger so the detail remains visible.
-- Kept desktop high-resolution magnifier behavior.
-- Added visible fallback email under Get in touch: hello@jonatanmercado.com.
-- Get in touch remains a mailto link with subject=Project inquiry.
-- Carries forward V6.16 fixes: mobile viewer aspect, About alignment/type, header logo contrast, concrete cinematic still, 2026 reel.
+Mobile magnifier interaction changed to avoid native phone context menus:
+- No long press.
+- Tap once on a portfolio image to activate the magnifier.
+- Drag while active to inspect details.
+- Tap again, or tap elsewhere, to close it.
+- Normal swipes still scroll the page when the magnifier is inactive.
+- iOS/Android image callout/context menu is explicitly disabled on magnifier images.
 
-V6.18 touch magnifier fix
-- Replaced phone magnifier gesture handling with native touchstart/touchmove/touchend.
-- 170 ms long-press activates the lens; normal swipes still scroll the page.
-- Once active, dragging moves the loupe and prevents the page from scrolling.
-- Added iOS/Safari-friendly touch handling and click suppression so the gallery does not open after a long press.
-- The lens is constrained inside the image so it cannot disappear behind overflow clipping.
+All V6.18 fixes and previous portfolio changes are retained.
