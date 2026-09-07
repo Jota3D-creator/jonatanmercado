@@ -3720,3 +3720,27 @@ html.lightbox-open body{
     min-height:292px;
   }
 }
+
+
+/* ==================================================
+   V6.11 — CONTACT SPACING
+================================================== */
+
+/* The contact section was too tall on desktop and created a large dead area
+   above the actual CTA. Keep some breathing room, but make it feel intentional. */
+@media(min-width:701px){
+  .contact{
+    min-height:58svh;
+    padding-top:clamp(64px,6vw,92px);
+    padding-bottom:clamp(28px,3.5vw,48px);
+  }
+
+  .contact-title{
+    margin-top:18px;
+    margin-bottom:30px;
+  }
+
+  .contact footer{
+    margin-top:46px;
+  }
+}
