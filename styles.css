@@ -3744,3 +3744,207 @@ html.lightbox-open body{
     margin-top:46px;
   }
 }
+
+
+/* ==================================================
+   V6.12 — SELECTED CLIENTS & COLLABORATIONS
+================================================== */
+
+.clients-strip{
+  background:var(--paper);
+  padding-top:34px;
+  padding-bottom:44px;
+  border-bottom:1px solid var(--line);
+}
+
+.clients-strip-head{
+  width:100%;
+  max-width:var(--max);
+  margin:0 auto 22px;
+  display:flex;
+  justify-content:space-between;
+  gap:30px;
+  align-items:flex-end;
+}
+
+.clients-strip-copy{
+  max-width:470px;
+  margin:0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.clients-logos{
+  width:100%;
+  max-width:var(--max);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  align-items:center;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.client-logo{
+  position:relative;
+  min-height:112px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 18px;
+  border-right:1px solid var(--line);
+  overflow:hidden;
+}
+
+.client-logo:last-child{
+  border-right:0;
+}
+
+.client-logo img{
+  display:block;
+  max-width:100%;
+  max-height:44px;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  filter:grayscale(1) brightness(0);
+  opacity:.56;
+  transition:
+    opacity .25s ease,
+    transform .25s ease;
+}
+
+.client-logo-paramount img{
+  max-height:58px;
+}
+
+.client-logo-audi img{
+  max-height:34px;
+}
+
+.client-logo-ilm img{
+  max-height:50px;
+}
+
+.client-logo-chanel img{
+  max-height:30px;
+}
+
+.client-logo-word{
+  color:#2d2d2b;
+  opacity:.62;
+  font-size:clamp(15px,1.1vw,19px);
+  font-weight:600;
+  letter-spacing:.08em;
+  text-align:center;
+}
+
+.client-logo-lithodomos{
+  letter-spacing:.13em;
+}
+
+.client-logo-fallback{
+  display:none;
+  color:#2d2d2b;
+  opacity:.62;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.07em;
+  text-align:center;
+}
+
+.client-logo img[src=""],
+.client-logo img:not([src]){
+  display:none;
+}
+
+.client-logo img[src=""] + .client-logo-fallback,
+.client-logo img:not([src]) + .client-logo-fallback{
+  display:block;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .client-logo:hover img{
+    opacity:.88;
+    transform:scale(1.025);
+  }
+
+  .client-logo-word:hover{
+    opacity:.88;
+  }
+}
+
+@media(max-width:1000px){
+  .clients-logos{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .client-logo{
+    min-height:104px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .client-logo:nth-child(3n){
+    border-right:0;
+  }
+
+  .client-logo:nth-last-child(-n+3){
+    border-bottom:0;
+  }
+}
+
+@media(max-width:700px){
+  .clients-strip{
+    padding-top:28px;
+    padding-bottom:34px;
+  }
+
+  .clients-strip-head{
+    display:block;
+    margin-bottom:16px;
+  }
+
+  .clients-strip-copy{
+    max-width:none;
+    margin-top:10px;
+    font-size:10px;
+  }
+
+  .clients-logos{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .client-logo{
+    min-height:86px;
+    padding:18px 14px;
+  }
+
+  .client-logo:nth-child(3n){
+    border-right:1px solid var(--line);
+  }
+
+  .client-logo:nth-child(2n){
+    border-right:0;
+  }
+
+  .client-logo:nth-last-child(-n+3){
+    border-bottom:1px solid var(--line);
+  }
+
+  .client-logo:nth-last-child(-n+2){
+    border-bottom:0;
+  }
+
+  .client-logo-paramount img{
+    max-height:48px;
+  }
+
+  .client-logo-ilm img{
+    max-height:40px;
+  }
+
+  .client-logo-word{
+    font-size:14px;
+  }
+}
