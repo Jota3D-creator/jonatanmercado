@@ -3325,3 +3325,398 @@ html.lightbox-open body{
     display:none!important;
   }
 }
+
+
+/* ==================================================
+   V6.10 — MOBILE PASS
+   Desktop composition remains unchanged.
+================================================== */
+
+.viewer-viewport{
+  position:absolute;
+  inset:0;
+}
+
+@media(max-width:700px){
+
+  :root{
+    --pad:18px;
+  }
+
+  body{
+    overflow-x:hidden;
+  }
+
+  /* Avoid the fixed logo duplicating/overlapping content deep in the page. */
+  .site-header{
+    position:absolute;
+    padding:14px 18px;
+    mix-blend-mode:normal;
+    color:var(--ink);
+  }
+
+  .brand-mark{
+    width:29px;
+    height:29px;
+  }
+
+  .nav{
+    display:none;
+  }
+
+  .section-pad{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .section-heading,
+  .section-heading.split{
+    display:block;
+    margin-bottom:28px;
+  }
+
+  .section-heading h2{
+    max-width:none;
+    margin-top:10px;
+    font-size:clamp(38px,11.2vw,50px);
+    line-height:.98;
+  }
+
+  .section-intro{
+    max-width:none;
+    margin-top:18px;
+    font-size:14px;
+    line-height:1.48;
+  }
+
+  .case-study{
+    margin-top:70px;
+  }
+
+  /* Case-study headers: title first, description underneath. */
+  .case-header{
+    display:block;
+    width:100%;
+    margin-bottom:22px;
+    padding-top:13px;
+  }
+
+  .case-header h3{
+    max-width:100%;
+    margin:10px 0 0;
+    font-size:clamp(40px,12vw,52px);
+    line-height:.92;
+    letter-spacing:-.05em;
+    overflow-wrap:normal;
+    word-break:normal;
+  }
+
+  .case-description.copy-card{
+    width:100%;
+    max-width:none;
+    margin-top:20px;
+    padding:14px 0;
+  }
+
+  .case-description p{
+    font-size:14px;
+    line-height:1.48;
+  }
+
+  .case-description .tags{
+    font-size:8px;
+    line-height:1.55;
+  }
+
+  .case-archviz .case-header h3{
+    font-size:clamp(38px,10.8vw,48px);
+    line-height:.94;
+  }
+
+  .case-video .case-header h3{
+    font-size:clamp(42px,12vw,54px);
+  }
+
+  .video-frame{
+    margin-top:0;
+  }
+
+  .case-link-row{
+    padding-top:12px;
+  }
+
+  /* ABOUT */
+  .about{
+    padding-top:72px;
+    padding-bottom:72px;
+  }
+
+  .about-grid{
+    display:block;
+  }
+
+  .about-heading{
+    display:grid;
+    grid-template-columns:64px minmax(0,1fr);
+    grid-template-areas:
+      "eyebrow eyebrow"
+      "mark name";
+    column-gap:16px;
+    align-items:end;
+  }
+
+  .about-heading .eyebrow{
+    grid-area:eyebrow;
+    margin-bottom:18px;
+  }
+
+  .about-mark{
+    grid-area:mark;
+    width:64px;
+    margin:0;
+  }
+
+  .about-heading h2{
+    grid-area:name;
+    margin:0;
+    font-size:clamp(46px,13vw,60px);
+    line-height:.86;
+    letter-spacing:-.055em;
+  }
+
+  .about-copy{
+    margin-top:34px;
+  }
+
+  .about-copy > p{
+    max-width:none;
+    margin-bottom:21px;
+    font-size:clamp(22px,6.2vw,28px);
+    line-height:1.18;
+  }
+
+  .about-copy > p + p{
+    font-size:clamp(20px,5.7vw,25px);
+  }
+
+  .about-meta{
+    grid-template-columns:1fr 1fr;
+    gap:28px 18px;
+    margin-top:36px;
+  }
+
+  .about-meta > div:last-child{
+    grid-column:1 / -1;
+  }
+
+  /* INTERACTIVE 3D */
+  .interactive{
+    padding-top:64px;
+    padding-bottom:68px;
+  }
+
+  .interactive .section-heading{
+    margin-bottom:24px;
+  }
+
+  .viewer-grid{
+    display:block;
+  }
+
+  .viewer-card{
+    margin-bottom:16px;
+    transform:none!important;
+    box-shadow:none!important;
+  }
+
+  .viewer-card-head{
+    min-height:58px;
+    padding:10px 12px;
+  }
+
+  .viewer-card-head h3{
+    font-size:18px;
+  }
+
+  .viewer-card-head > span{
+    display:block;
+    font-size:8px;
+  }
+
+  .viewer-stage{
+    display:flex;
+    flex-direction:column;
+    min-height:0!important;
+    aspect-ratio:auto!important;
+    overflow:visible;
+    background:#0b0c0e;
+  }
+
+  .viewer-viewport{
+    position:relative;
+    inset:auto;
+    width:100%;
+    height:72vw;
+    min-height:300px;
+    max-height:410px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 43%,#2a2b2f 0,#17181b 45%,#0b0c0e 82%);
+  }
+
+  .viewer-canvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+  }
+
+  .viewer-reset{
+    top:10px;
+    right:10px;
+  }
+
+  .viewer-toolbar,
+  .viewer-card[data-viewer-id="hauga"] .viewer-toolbar,
+  .viewer-card[data-viewer-id="tonstad"] .viewer-toolbar{
+    position:relative;
+    left:auto;
+    right:auto;
+    bottom:auto;
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr!important;
+    gap:12px;
+    margin:0;
+    padding:14px 12px;
+    background:#0d0e10;
+    border:0;
+    border-top:1px solid rgba(255,255,255,.12);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+
+  .viewer-swatches{
+    flex-wrap:nowrap;
+  }
+
+  .viewer-swatch{
+    min-height:42px;
+    flex:1;
+    justify-content:center;
+  }
+
+  .viewer-range{
+    height:28px;
+  }
+
+  .viewer-action-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+
+  .viewer-action{
+    min-height:46px;
+  }
+
+  .viewer-card-foot{
+    min-height:46px;
+    padding:10px 12px;
+    gap:12px;
+  }
+
+  .viewer-card-foot span:first-child{
+    max-width:78%;
+    line-height:1.45;
+  }
+
+  .viewer-note{
+    grid-template-columns:1fr;
+    gap:7px;
+    margin-top:14px;
+  }
+
+  .feature-grid{
+    grid-template-columns:1fr;
+    margin-top:28px;
+  }
+
+  .feature,
+  .feature:not(:first-child),
+  .feature:last-child{
+    min-height:0;
+    padding:22px 0 28px;
+    border-right:0;
+  }
+
+  /* SCALE / SYSTEMS */
+  .scale{
+    padding-top:64px;
+    padding-bottom:64px;
+  }
+
+  .scale-heading{
+    margin-bottom:28px;
+  }
+
+  .scale-card h3{
+    font-size:30px;
+  }
+
+  .system-card{
+    padding:18px;
+  }
+
+  .system-card h3{
+    font-size:28px;
+  }
+
+  /* CONTACT */
+  .contact{
+    min-height:auto;
+    padding-top:78px;
+    padding-bottom:34px;
+  }
+
+  .contact-title{
+    font-size:clamp(48px,13vw,62px);
+    margin-bottom:30px;
+  }
+
+  .contact footer{
+    margin-top:62px;
+  }
+}
+
+@media(max-width:390px){
+  .case-header h3{
+    font-size:42px;
+  }
+
+  .about-heading{
+    grid-template-columns:54px minmax(0,1fr);
+    column-gap:13px;
+  }
+
+  .about-mark{
+    width:54px;
+  }
+
+  .about-heading h2{
+    font-size:46px;
+  }
+
+  .about-meta{
+    grid-template-columns:1fr;
+  }
+
+  .about-meta > div:last-child{
+    grid-column:auto;
+  }
+
+  .viewer-viewport{
+    height:78vw;
+    min-height:292px;
+  }
+}

@@ -57,6 +57,7 @@ const NAME_PATTERNS = {
 };
 
 const DEBUG = new URLSearchParams(window.location.search).get("viewerDebug") === "1";
+const MOBILE_VIEWER = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches;
 
 class ProductViewer {
   constructor(root) {
@@ -75,16 +76,20 @@ class ProductViewer {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
+      antialias: !MOBILE_VIEWER,
       alpha: true,
-      powerPreference: "high-performance"
+      powerPreference: MOBILE_VIEWER ? "default" : "high-performance"
     });
 
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(
+      MOBILE_VIEWER
+        ? Math.min(window.devicePixelRatio || 1, 1.15)
+        : Math.min(window.devicePixelRatio || 1, 2)
+    );
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.01;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !MOBILE_VIEWER;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.sortObjects = true;
     this.renderer.setClearColor(0x000000, 0);
@@ -98,7 +103,7 @@ class ProductViewer {
       MIDDLE: THREE.MOUSE.DOLLY,
       RIGHT: THREE.MOUSE.PAN
     };
-    this.controls.autoRotate = true;
+    this.controls.autoRotate = !MOBILE_VIEWER;
     this.controls.autoRotateSpeed = 0.38;
     this.controls.minPolarAngle = Math.PI * 0.12;
     this.controls.maxPolarAngle = Math.PI * 0.84;
@@ -145,6 +150,20 @@ class ProductViewer {
     this.pointerDown = null;
     this.lastTap = null;
 
+    this.isVisible = true;
+
+    this.visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        this.isVisible = Boolean(entries[0]?.isIntersecting);
+      },
+      {
+        rootMargin: "180px 0px",
+        threshold: 0.01
+      }
+    );
+
+    this.visibilityObserver.observe(this.root);
+
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.stage);
 
@@ -169,9 +188,12 @@ class ProductViewer {
 
     const key = new THREE.DirectionalLight(0xfff2df, 3.0);
     key.position.set(3.5, 6.5, 4.5);
-    key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
-    key.shadow.bias = -0.0002;
+    key.castShadow = !MOBILE_VIEWER;
+
+    if (!MOBILE_VIEWER) {
+      key.shadow.mapSize.set(1024, 1024);
+      key.shadow.bias = -0.0002;
+    }
     this.scene.add(key);
 
     const fill = new THREE.DirectionalLight(0xdce8ff, 1.08);
@@ -190,8 +212,8 @@ class ProductViewer {
       this.model.traverse((obj) => {
         if (!obj.isMesh) return;
 
-        obj.castShadow = true;
-        obj.receiveShadow = true;
+        obj.castShadow = !MOBILE_VIEWER;
+        obj.receiveShadow = !MOBILE_VIEWER;
 
         if (obj.geometry?.attributes?.uv && !obj.geometry.attributes.uv1) {
           obj.geometry.setAttribute("uv1", obj.geometry.attributes.uv.clone());
@@ -405,34 +427,34 @@ class ProductViewer {
   }
 
   async prepareTonstadVariants() {
-    const loadSet = async (finish, urls) => {
-      try {
-        const [baseColor, normal, roughness, ao] = await Promise.all([
-          this.loadExternalTexture(urls.baseColor, true),
-          this.loadExternalTexture(urls.normal, false),
-          this.loadExternalTexture(urls.roughness, false),
-          this.loadExternalTexture(urls.ao, false)
-        ]);
+    // Variants are loaded only when requested. This avoids loading both
+    // PBR sets at once on mobile.
+    return;
+  }
 
-        this.variantTextures.set(finish, {
-          baseColor,
-          normal,
-          roughness,
-          ao
-        });
-      } catch (error) {
-        console.warn(
-          `[TONSTAD] Could not load ${finish} texture set`,
-          error
-        );
-      }
-    };
+  async ensureTonstadVariant(finish) {
+    if (this.variantTextures.has(finish)) {
+      return this.variantTextures.get(finish);
+    }
 
-    await Promise.all(
-      Object.entries(this.config.textures || {}).map(([finish, urls]) =>
-        loadSet(finish, urls)
-      )
-    );
+    const urls = this.config.textures?.[finish];
+    if (!urls) return null;
+
+    try {
+      const [baseColor, normal, roughness, ao] = await Promise.all([
+        this.loadExternalTexture(urls.baseColor, true),
+        this.loadExternalTexture(urls.normal, false),
+        this.loadExternalTexture(urls.roughness, false),
+        this.loadExternalTexture(urls.ao, false)
+      ]);
+
+      const set = { baseColor, normal, roughness, ao };
+      this.variantTextures.set(finish, set);
+      return set;
+    } catch (error) {
+      console.warn(`[TONSTAD] Could not load ${finish} texture set`, error);
+      return null;
+    }
   }
 
   async loadExternalTexture(url, isColor) {
@@ -453,7 +475,7 @@ class ProductViewer {
   }
 
   async applyTonstadFinish(finish) {
-    const set = this.variantTextures.get(finish);
+    const set = await this.ensureTonstadVariant(finish);
 
     if (!set || !this.primaryWoodMaterials.length) return;
 
@@ -1427,10 +1449,9 @@ class ProductViewer {
 
     if (!rect.width || !rect.height) return;
 
-    const pixelRatio = Math.min(
-      window.devicePixelRatio || 1,
-      2
-    );
+    const pixelRatio = MOBILE_VIEWER
+      ? Math.min(window.devicePixelRatio || 1, 1.15)
+      : Math.min(window.devicePixelRatio || 1, 2);
 
     const width = Math.round(
       rect.width * pixelRatio
@@ -1465,6 +1486,8 @@ class ProductViewer {
     requestAnimationFrame(
       this.animate
     );
+
+    if (!this.isVisible) return;
 
     this.controls.update();
 
@@ -1556,8 +1579,33 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;");
 }
 
-document
-  .querySelectorAll(".js-product-viewer")
-  .forEach((root) => {
-    new ProductViewer(root);
-  });
+const viewerRoots = [
+  ...document.querySelectorAll(".js-product-viewer")
+];
+
+if ("IntersectionObserver" in window) {
+  const initObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const root = entry.target;
+
+        if (!root.dataset.viewerInitialized) {
+          root.dataset.viewerInitialized = "true";
+          new ProductViewer(root);
+        }
+
+        observer.unobserve(root);
+      });
+    },
+    {
+      rootMargin: MOBILE_VIEWER ? "220px 0px" : "420px 0px",
+      threshold: 0.01
+    }
+  );
+
+  viewerRoots.forEach((root) => initObserver.observe(root));
+} else {
+  viewerRoots.forEach((root) => new ProductViewer(root));
+}

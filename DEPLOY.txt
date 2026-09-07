@@ -46,3 +46,7 @@ mailto:hello@jonatanmercado.com?subject=Project%20inquiry
 GITHUB PAGES
 The CNAME file contains:
 jonatanmercado.com
+
+
+V6.10 MOBILE PASS
+Replace the root files with this release. No new asset paths are required.
