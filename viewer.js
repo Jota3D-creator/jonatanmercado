@@ -1454,20 +1454,33 @@ class ProductViewer {
       ? Math.min(window.devicePixelRatio || 1, 1.15)
       : Math.min(window.devicePixelRatio || 1, 2);
 
-    this.renderer.setPixelRatio(
-      pixelRatio
+    const width = Math.round(
+      rect.width * pixelRatio
     );
 
-    this.renderer.setSize(
-      rect.width,
-      rect.height,
-      false
+    const height = Math.round(
+      rect.height * pixelRatio
     );
 
-    this.camera.aspect =
-      rect.width / rect.height;
+    if (
+      this.canvas.width !== width ||
+      this.canvas.height !== height
+    ) {
+      this.renderer.setPixelRatio(
+        pixelRatio
+      );
 
-    this.camera.updateProjectionMatrix();
+      this.renderer.setSize(
+        rect.width,
+        rect.height,
+        false
+      );
+
+      this.camera.aspect =
+        rect.width / rect.height;
+
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   animate = () => {
