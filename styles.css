@@ -3948,3 +3948,142 @@ html.lightbox-open body{
     font-size:14px;
   }
 }
+
+
+/* ==================================================
+   V6.14 — CLIENT LOGOS FIX
+   No external logo CDN. Self-contained monochrome lockups.
+================================================== */
+
+.clients-logos .client-logo img,
+.clients-logos .client-logo-fallback{
+  display:none!important;
+}
+
+.client-logo{
+  color:#5d5c58;
+}
+
+.brand-lockup{
+  width:100%;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:currentColor;
+  opacity:.84;
+  transition:
+    opacity .25s ease,
+    transform .25s ease;
+}
+
+.brand-lockup .brand-main,
+.brand-lockup .brand-sub{
+  display:block;
+}
+
+/* PARAMOUNT: editorial wordmark rather than a broken remote SVG */
+.brand-paramount{
+  flex-direction:column;
+  gap:2px;
+  line-height:1;
+}
+
+.brand-paramount .brand-main{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(19px,1.55vw,27px);
+  font-style:italic;
+  letter-spacing:-.045em;
+}
+
+.brand-paramount .brand-sub{
+  font-size:7px;
+  font-weight:600;
+  letter-spacing:.24em;
+}
+
+/* AUDI: exact visual idea of the four rings, drawn locally in CSS */
+.brand-audi{
+  display:flex;
+  gap:-1px;
+  height:38px;
+}
+
+.brand-audi .audi-ring{
+  display:block;
+  width:35px;
+  height:35px;
+  margin-left:-7px;
+  border:2.2px solid currentColor;
+  border-radius:50%;
+}
+
+.brand-audi .audi-ring:first-child{
+  margin-left:0;
+}
+
+/* ILM: compact studio monogram + full name */
+.brand-ilm{
+  flex-direction:column;
+  gap:4px;
+}
+
+.brand-ilm .brand-main{
+  font-size:clamp(25px,2vw,34px);
+  line-height:.86;
+  font-weight:700;
+  letter-spacing:-.07em;
+}
+
+.brand-ilm .brand-sub{
+  font-size:6.5px;
+  font-weight:600;
+  letter-spacing:.11em;
+  white-space:nowrap;
+}
+
+/* CHANEL / 4D / LITHODOMOS: restrained wordmarks */
+.brand-chanel span{
+  font-size:clamp(16px,1.35vw,22px);
+  font-weight:600;
+  letter-spacing:.18em;
+}
+
+.brand-4d span{
+  font-size:clamp(15px,1.25vw,20px);
+  font-weight:650;
+  letter-spacing:.06em;
+}
+
+.brand-lithodomos span{
+  font-size:clamp(14px,1.18vw,19px);
+  font-weight:600;
+  letter-spacing:.13em;
+}
+
+@media(hover:hover) and (pointer:fine){
+  .client-logo:hover .brand-lockup{
+    opacity:1;
+    transform:translateY(-1px);
+  }
+}
+
+@media(max-width:700px){
+  .brand-audi{
+    transform:scale(.86);
+  }
+
+  .brand-ilm .brand-sub{
+    font-size:5.8px;
+  }
+
+  .brand-paramount .brand-main{
+    font-size:20px;
+  }
+
+  .brand-chanel span,
+  .brand-4d span,
+  .brand-lithodomos span{
+    font-size:13px;
+  }
+}
